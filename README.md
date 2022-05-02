@@ -1,21 +1,20 @@
-# ExFactory
+# FactoryEx
 
-**TODO: Add description**
+[![Test](https://github.com/theblitzapp/factory_ex/actions/workflows/test-actions.yml/badge.svg)](https://github.com/theblitzapp/factory_ex/actions/workflows/test-actions.yml)
+[![Hex version badge](https://img.shields.io/hexpm/v/factory_ex.svg)](https://hex.pm/packages/factory_ex)
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ex_factory` to your list of dependencies in `mix.exs`:
+[Available in Hex](https://hex.pm/docs/publish), the package can be installed
+by adding `factory_ex` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
   [
-    {:ex_factory, "~> 0.1.0"}
+    {:factory_ex, "~> 0.1.0"}
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/ex_factory>.
+Documentation can be found at <https://hexdocs.pm/factory_ex>.
 
