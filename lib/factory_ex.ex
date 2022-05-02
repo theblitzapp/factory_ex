@@ -1,44 +1,6 @@
 defmodule FactoryEx do
   @moduledoc """
-  This module defines an Ecto factory behaviour.
-
-  For defining your own factories just implement `schema/0`, `repo/0` and
-  `build/0` callback e.g:
-
-  ```elixir
-  defmodule MyFactory do
-    @behaviour FactoryEx
-
-    def schema, do: MySchema
-
-    def repo, do: MyRepo
-
-    def build(params \\ %{}) do
-      default = %{
-        foo: 21,
-        bar: 42
-      }
-
-      Map.merge(default, params)
-    end
-  end
-  ```
-
-  And then using it in your tests as:
-
-  ```elixir
-  # For getting a default parameter map.
-  FactoryEx.build(MyFactory)
-
-  # For getting a default parameter map with a modification.
-  FactoryEx.build(MyFactory, foo: 42)
-
-  # For inserting a default schema.
-  FactoryEx.insert!(MyFactory)
-
-  # For inserting a default schema with a modification.
-  FactoryEx.insert!(MyFactory, foo: 42)
-  ```
+  #{File.read!("./README.md")}
   """
 
   @doc """
