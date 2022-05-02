@@ -40,7 +40,7 @@ defmodule FactoryEx do
   def build_params(module, params) do
     params
     |> module.build()
-    |> SharedUtils.Map.deep_struct_to_map()
+    |> FactoryEx.Utils.deep_struct_to_map()
   end
 
   @doc """
