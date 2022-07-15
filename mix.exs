@@ -60,7 +60,7 @@ defmodule FactoryEx.MixProject do
       maintainers: ["Mika Kalathil"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/theblitzapp/factory_ex"},
-      files: ~w(mix.exs README.md CHANGELOG.md LICENSE lib config)
+      files: ~w(mix.exs mix.lock README.md CHANGELOG.md LICENSE lib)
     ]
   end
 

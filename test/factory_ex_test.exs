@@ -1,13 +1,5 @@
 defmodule FactoryExTest do
   use ExUnit.Case
-  doctest FactoryEx
-
-  defmodule MyRepo do
-    @moduledoc false
-    use Ecto.Repo,
-      otp_app: :my_repo,
-      adapter: Ecto.Adapters.Postgres
-  end
 
   defmodule MySchema do
     use Ecto.Schema
@@ -32,7 +24,7 @@ defmodule FactoryExTest do
 
     def schema, do: MySchema
 
-    def repo, do: MyRepo
+    def repo, do: FactoryEx.Support.Repo
 
     def build(params \\ %{}) do
       default = %{
@@ -44,11 +36,26 @@ defmodule FactoryExTest do
     end
   end
 
-  test "can generate a factory" do
-    # assert %MySchema{foo: 21, bar: 42} = FactoryEx.insert!(TestFactory)
-    # assert %MySchema{foo: 21, bar: 10} = FactoryEx.insert!(TestFactory, bar: 10)
+  setup_all do
+    {:ok, _} = Ecto.Adapters.Postgres.ensure_all_started(FactoryEx.Support.Repo, :temporary)
 
+    _ = Ecto.Adapters.Postgres.storage_down(FactoryEx.Support.Repo.config())
+    :ok = Ecto.Adapters.Postgres.storage_up(FactoryEx.Support.Repo.config())
+
+    {:ok, _pid} = FactoryEx.Support.Repo.start_link()
+
+    %{}
+  end
+
+  doctest FactoryEx
+
+  test "can generate a factory" do
     assert %{foo: 21, bar: 42} = TestFactory.build()
     assert %{foo: 21, bar: 10} = TestFactory.build(%{bar: 10})
+  end
+
+  test "can insert a factory" do
+    assert %MySchema{foo: 21, bar: 42} = FactoryEx.insert!(TestFactory)
+    assert %MySchema{foo: 21, bar: 10} = FactoryEx.insert!(TestFactory, bar: 10)
   end
 end
