@@ -28,6 +28,12 @@ defmodule FactoryEx do
   @doc """
   Builds the parameters for a schema `changeset/2` function given the factory
   `module` and an optional list/map of `params`.
+
+  ### Example
+
+      iex> FactoryEx.build_params(TestFactory)
+      %{foo: 21, bar: 42}
+
   """
   @spec build_params(module()) :: map()
   @spec build_params(module(), keyword() | map()) :: map()
@@ -46,6 +52,12 @@ defmodule FactoryEx do
   @doc """
   Builds a schema given the factory `module` and an optional
   list/map of `params`.
+
+  ### Example
+
+      iex> FactoryEx.build(TestFactory)
+      %MySchema{foo: 21, bar: 42}
+
   """
   @spec build(module()) :: Ecto.Schema.t()
   @spec build(module(), keyword() | map()) :: Ecto.Schema.t()
@@ -62,6 +74,14 @@ defmodule FactoryEx do
   @doc """
   Inserts a schema given the factory `module` and an optional list/map of
   `params`. Fails on error.
+
+  ### Example
+
+      iex> factory = FactoryEx.insert!(TestFactory)
+      %MySchema{foo: 21, bar: 42}
+      iex> MyRepo.get(factory.id)
+      factory
+
   """
   @spec insert!(module()) :: Ecto.Schema.t() | no_return()
   @spec insert!(module(), keyword() | map(), Keyword.t()) :: Ecto.Schema.t() | no_return()
@@ -80,6 +100,12 @@ defmodule FactoryEx do
   @doc """
   Insert as many as `count` schemas given the factory `module` and an optional
   list/map of `params`.
+
+  ### Example
+
+      iex> FactoryEx.insert_many!(2, TestFactory)
+      [%MySchema{foo: 21, bar: 42}, %MySchema{foo: 21, bar: 42}]
+
   """
   @spec insert_many!(pos_integer(), module()) :: [Ecto.Schema.t()]
   @spec insert_many!(pos_integer(), module(), keyword() | map()) :: [Ecto.Schema.t()]
@@ -90,6 +116,14 @@ defmodule FactoryEx do
   @doc """
   Removes all the instances of a schema from the database given its factory
   `module`.
+
+  ### Example
+
+      iex> FactoryEx.insert!(TestFactory)
+      %MySchema{foo: 21, bar: 42}
+      iex> MyRepo.cleanup(TestFactory)
+      {1, []}
+
   """
   @spec cleanup(module) :: {integer(), nil | [term()]}
   def cleanup(module, options \\ []) do
