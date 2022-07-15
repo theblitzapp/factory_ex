@@ -1,6 +1,9 @@
 # FactoryEx
-
-[![Test](https://github.com/theblitzapp/factory_ex/actions/workflows/test-actions.yml/badge.svg)](https://github.com/theblitzapp/factory_ex/actions/workflows/test-actions.yml)
+[![Coverage](https://github.com/MikaAK/factory_ex/actions/workflows/coverage.yml/badge.svg)](https://github.com/MikaAK/factory_ex/actions/workflows/coverage.yml)
+[![Test](https://github.com/MikaAK/factory_ex/actions/workflows/test.yml/badge.svg)](https://github.com/MikaAK/factory_ex/actions/workflows/test.yml)
+[![Dialyzer](https://github.com/MikaAK/factory_ex/actions/workflows/dialyzer.yml/badge.svg)](https://github.com/MikaAK/factory_ex/actions/workflows/dialyzer.yml)
+[![Credo](https://github.com/MikaAK/factory_ex/actions/workflows/credo.yml/badge.svg)](https://github.com/MikaAK/factory_ex/actions/workflows/credo.yml)
+[![codecov](https://codecov.io/gh/MikaAK/factory_ex/branch/master/graph/badge.svg?token=V0JJA5AZ1H)](https://codecov.io/gh/MikaAK/factory_ex)
 [![Hex version badge](https://img.shields.io/hexpm/v/factory_ex.svg)](https://hex.pm/packages/factory_ex)
 
 ### Installation
