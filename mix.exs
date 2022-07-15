@@ -14,7 +14,7 @@ defmodule FactoryEx.MixProject do
       package: package(),
       test_coverage: [tool: ExCoveralls],
       dialyzer: [
-        plt_add_apps: [:ex_unit, :mix, :credo],
+        plt_add_apps: [:ex_unit, :mix, :credo, :ecto_sql],
         list_unused_filters: true,
         plt_local_path: "dialyzer",
         plt_core_path: "dialyzer",
@@ -41,6 +41,8 @@ defmodule FactoryEx.MixProject do
   defp deps do
     [
       {:ecto, "~> 3.0"},
+      {:faker, "~> 0.17"},
+
       {:ecto_sql, "~> 3.0", only: [:test, :dev], optional: true},
       {:postgrex, "~> 0.16", only: [:test, :dev], optional: true},
 
@@ -69,7 +71,8 @@ defmodule FactoryEx.MixProject do
 
       groups_for_modules: [
         "General": [
-          FactoryEx
+          FactoryEx,
+          FactoryEx.SchemaCounter
         ],
 
         "Adapters": [
@@ -80,5 +83,6 @@ defmodule FactoryEx.MixProject do
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:dev), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 end

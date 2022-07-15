@@ -60,3 +60,39 @@ FactoryEx.insert!(MyFactory)
 FactoryEx.insert!(MyFactory, foo: 42)
 ```
 
+### Using FactoryEx.SchemaCounter
+In order to avoid duplicate data on fields and guarentee unique data, we can use
+`FactoryEx.SchemaCounter` to generate unique integers to append to our fields.
+
+For example our factory could look like the following:
+
+```elixir
+defmodule MyFactory do
+  @behaviour FactoryEx
+
+  def schema, do: MySchema
+
+  def repo, do: MyRepo
+
+  def build(params \\ %{}) do
+    default = %{
+      foo: FactoryEx.SchemaCounter.next("my_factory_foo"),
+      bar: FactoryEx.SchemaCounter.next("my_factory_bar")
+    }
+
+    Map.merge(default, params)
+  end
+end
+```
+
+To utilize `FactoryEx.SchemaCounter`, we must call `FactoryEx.SchemaCounter.start()` in the `test/test_helper.exs` file.
+
+### Generating Factories
+FactoryEx comes with a helpful mix command to generate factories into our application
+
+```bash
+$ mix factory_ex.gen --repo FactoryEx.Support.Repo FactoryEx.Support.Accounts.User
+$ mix factory_ex.gen --repo FactoryEx.Support.Repo FactoryEx.Support.{Accounts.{User,Role},Authentication.{Token,Session}}
+```
+
+To read more info run `mix factory_ex.gen`
