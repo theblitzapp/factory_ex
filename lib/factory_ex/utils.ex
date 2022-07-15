@@ -2,7 +2,7 @@ defmodule FactoryEx.Utils do
   @moduledoc false
 
   @struct_fields [:__meta__]
-  @whitelisted_modules [DateTime]
+  @whitelisted_modules [NaiveDateTime, DateTime, Date, Time]
 
   @doc """
   Changes structs into maps all the way down, excluding
@@ -32,4 +32,18 @@ defmodule FactoryEx.Utils do
     elem
   end
 
+  def underscore_schema(ecto_schema) when is_atom(ecto_schema) do
+    ecto_schema |> inspect |> underscore_schema
+  end
+
+  def underscore_schema(ecto_schema) do
+    ecto_schema |> String.replace(".", "") |> Macro.underscore
+  end
+
+  def context_schema_name(ecto_schema) do
+    ecto_schema
+      |> String.split(".")
+      |> Enum.take(-2)
+      |> Enum.map_join("_", &String.downcase/1)
+  end
 end
