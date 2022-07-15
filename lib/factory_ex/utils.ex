@@ -1,4 +1,6 @@
 defmodule FactoryEx.Utils do
+  @moduledoc false
+
   @struct_fields [:__meta__]
   @whitelisted_modules [DateTime]
 

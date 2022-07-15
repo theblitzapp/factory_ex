@@ -11,7 +11,22 @@ defmodule FactoryEx.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
-      package: package()
+      package: package(),
+      test_coverage: [tool: ExCoveralls],
+      dialyzer: [
+        plt_add_apps: [:ex_unit, :mix, :credo],
+        list_unused_filters: true,
+        plt_local_path: "dialyzer",
+        plt_core_path: "dialyzer",
+        flags: [:unmatched_returns]
+      ],
+      preferred_cli_env: [
+        dialyzer: :test,
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ]
     ]
   end
 
@@ -25,9 +40,16 @@ defmodule FactoryEx.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ecto, "~> 3.0", only: [:test, :dev], optional: true},
+      {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.0", only: [:test, :dev], optional: true},
-      {:postgrex, "~> 0.16", only: [:test, :dev], optional: true}
+      {:postgrex, "~> 0.16", only: [:test, :dev], optional: true},
+
+      {:credo, "~> 1.6", only: [:test, :dev], runtime: false},
+      {:blitz_credo_checks, "~> 0.1", only: [:test, :dev], runtime: false},
+
+      {:excoveralls, "~> 0.10", only: :test},
+      {:ex_doc, ">= 0.0.0", optional: true, only: :dev},
+      {:dialyxir, "~> 1.0", optional: true, only: :test, runtime: false}
     ]
   end
 
