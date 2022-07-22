@@ -78,7 +78,7 @@ defmodule Mix.Tasks.FactoryEx.Gen do
     end
   end
 
-  defp generate_factory(ecto_schema, repo, opts) do
+  def generate_factory(ecto_schema, repo, opts) do
     schema_fields = ecto_schema
       |> FactoryExHelpers.schema_fields()
       |> Kernel.--(FactoryExHelpers.schema_primary_key(ecto_schema) ++ @blacklist_fields)
