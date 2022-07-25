@@ -138,7 +138,12 @@ defmodule Mix.Tasks.FactoryEx.Gen do
   end
 
   defp build_random_field(:integer, field, ecto_schema) do
-    "FactoryEx.SchemaCounter.next(\"#{ecto_schema}_#{field}\")"
+    schema_name = ecto_schema
+      |> inspect()
+      |> String.split(".")
+      |> Enum.map_join("_", &String.downcase/1)
+
+    "FactoryEx.SchemaCounter.next(\"#{schema_name}_#{field}\")"
   end
 
   defp build_random_field(:string, field, ecto_schema) do
