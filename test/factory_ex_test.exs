@@ -16,6 +16,7 @@ defmodule FactoryExTest do
     schema "my_schmeas" do
       field :foo, :integer
       field :bar, :integer
+      field :foo_bar_baz, :integer
     end
 
     @required_params [:foo, :bar]
@@ -49,8 +50,15 @@ defmodule FactoryExTest do
     # assert %MySchema{foo: 21, bar: 42} = FactoryEx.insert!(TestFactory)
     # assert %MySchema{foo: 21, bar: 10} = FactoryEx.insert!(TestFactory, bar: 10)
 
+    assert %MySchema{foo: 21, bar: 42, foo_bar_baz: 11} = FactoryEx.build(TestFactory)
+    assert %MySchema{foo: 21, bar: 10, foo_bar_baz: 11} = FactoryEx.build(TestFactory, %{bar: 10})
+
     assert %{foo: 21, bar: 42, foo_bar_baz: 11} = FactoryEx.build_params(TestFactory)
     assert %{foo: 21, bar: 10, foo_bar_baz: 11} = FactoryEx.build_params(TestFactory, %{bar: 10})
+  end
+
+  test "can generate many factories" do
+    assert [_, _] = FactoryEx.build_many_params(2, TestFactory)
   end
 
   test "can generate a factory with string keys" do
