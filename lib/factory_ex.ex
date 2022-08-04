@@ -44,6 +44,17 @@ defmodule FactoryEx do
   @optional_callbacks [build_struct: 1]
 
   @doc """
+  Builds many parameters for a schema `changeset/2` function given the factory
+  `module` and an optional list/map of `params`.
+  """
+  @spec build_many_params(pos_integer, module()) :: map()
+  @spec build_many_params(pos_integer, module(), keyword() | map()) :: map()
+  @spec build_many_params(pos_integer, module(), keyword() | map(), build_opts) :: map()
+  def build_many_params(count, module, params \\ %{}, opts \\ []) do
+    Enum.map(1..count, fn _ -> build_params(module, params, opts) end)
+  end
+
+  @doc """
   Builds the parameters for a schema `changeset/2` function given the factory
   `module` and an optional list/map of `params`.
   """
