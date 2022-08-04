@@ -37,7 +37,8 @@ defmodule FactoryExTest do
     def build(params \\ %{}) do
       default = %{
         foo: 21,
-        bar: 42
+        bar: 42,
+        foo_bar_baz: 11
       }
 
       Map.merge(default, params)
@@ -48,7 +49,23 @@ defmodule FactoryExTest do
     # assert %MySchema{foo: 21, bar: 42} = FactoryEx.insert!(TestFactory)
     # assert %MySchema{foo: 21, bar: 10} = FactoryEx.insert!(TestFactory, bar: 10)
 
-    assert %{foo: 21, bar: 42} = TestFactory.build()
-    assert %{foo: 21, bar: 10} = TestFactory.build(%{bar: 10})
+    assert %{foo: 21, bar: 42, foo_bar_baz: 11} = FactoryEx.build_params(TestFactory)
+    assert %{foo: 21, bar: 10, foo_bar_baz: 11} = FactoryEx.build_params(TestFactory, %{bar: 10})
+  end
+
+  test "can generate a factory with string keys" do
+    assert %{
+      "foo" => 21,
+      "bar" => 42,
+      "foo_bar_baz" => 11
+    } = FactoryEx.build_params(TestFactory, %{}, keys: :string)
+  end
+
+  test "can generate a factory with camelCase keys" do
+    assert %{
+      "foo" => 21,
+      "bar" => 42,
+      "fooBarBaz" => 11
+    } = FactoryEx.build_params(TestFactory, %{}, keys: :camel_string)
   end
 end

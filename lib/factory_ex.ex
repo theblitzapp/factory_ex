@@ -1,7 +1,25 @@
 defmodule FactoryEx do
+  @build_definition [
+    keys: [
+      type: {:in, [:atom, :string, :camel_string]},
+      doc: "Sets the type of keys to have in the built object"
+    ]
+  ]
+
   @moduledoc """
   #{File.read!("./README.md")}
+
+  ### FactoryEx.build options
+  We can also specify options to `&FactoryEx.build/3`
+
+  #{NimbleOptions.docs(@build_definition)}
   """
+
+  alias FactoryEx.Utils
+
+  @type build_opts :: [
+    keys: :atom | :string | :camel_string
+  ]
 
   @doc """
   Callback that returns the schema module.
@@ -31,16 +49,31 @@ defmodule FactoryEx do
   """
   @spec build_params(module()) :: map()
   @spec build_params(module(), keyword() | map()) :: map()
-  def build_params(module, params \\ %{})
+  @spec build_params(module(), keyword() | map(), build_opts) :: map()
+  def build_params(module, params \\ %{}, opts \\ [])
 
-  def build_params(module, params) when is_list(params) do
-    build_params(module, Map.new(params))
+  def build_params(module, params, opts) when is_list(params) do
+    build_params(module, Map.new(params), opts)
   end
 
-  def build_params(module, params) do
+  def build_params(module, params, opts) do
+    opts = NimbleOptions.validate!(opts, @build_definition)
+
     params
     |> module.build()
-    |> FactoryEx.Utils.deep_struct_to_map()
+    |> Utils.deep_struct_to_map()
+    |> maybe_encode_keys(opts)
+  end
+
+  defp maybe_encode_keys(params, []), do: params
+
+  defp maybe_encode_keys(params, opts) do
+    case opts[:keys] do
+      nil -> params
+      :atom -> params
+      :string -> Utils.stringify_keys(params)
+      :camel_string -> Utils.camelize_keys(params)
+    end
   end
 
   @doc """
