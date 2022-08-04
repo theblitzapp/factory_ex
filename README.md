@@ -8,7 +8,7 @@
 
 ### Installation
 
-[Available in Hex](https://hex.pm/docs/publish), the package can be installed
+[Available in Hex](https://hex.pm/packages/factory_ex), the package can be installed
 by adding `factory_ex` to your list of dependencies in `mix.exs`:
 
 ```elixir
