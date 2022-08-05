@@ -9,7 +9,7 @@ defmodule Mix.Tasks.FactoryEx.Gen do
   ```
 
   ### Options
-  - `dirname` - Set directory name to generate into
+  - `dirname` - Set directory name to generate into `../my_app/test/support/factory/`
   - `force` - Force create files, no confirmations
   - `quiet` - No output messages
   """
@@ -19,6 +19,11 @@ defmodule Mix.Tasks.FactoryEx.Gen do
   alias Mix.FactoryExHelpers
 
   @blacklist_fields [:updated_at, :inserted_at]
+
+  @faker_mod_blacklist [
+    Faker.Name
+  ]
+
   @faker_functions (case :application.get_key(:faker, :modules) do
     {:ok, modules} ->
       modules
@@ -93,7 +98,9 @@ defmodule Mix.Tasks.FactoryEx.Gen do
 
   defp schema_factory_path(ecto_schema, opts) do
     [context, schema] = ecto_schema |> inspect |> String.split(".") |> Enum.take(-2)
-    dirname = opts[:dirname] || Path.expand("./test/support/factory/#{Macro.underscore(context)}")
+    dirname = opts[:dirname] || Path.expand("./test/support/factory/")
+    dirname = Path.join(dirname, Macro.underscore(context))
+
     file_name = "#{Macro.underscore(schema)}.ex"
 
     if not File.dir?(dirname) do
@@ -177,15 +184,23 @@ defmodule Mix.Tasks.FactoryEx.Gen do
     "Faker.Date.backward(Enum.random(100..400))"
   end
 
+  defp build_random_field({:parameterized, Ecto.Enum, %{mappings: mappings}}, _field, _ecto_schema) do
+    enum_list = mappings |> Keyword.keys |> Enum.map_join(", ", &(":#{&1}"))
+
+    "Enum.random([#{enum_list}])"
+  end
+
   defp find_faker_function_with_type(field, type) do
     field
       |> matching_faker_functions
       |> Enum.find(fn {module, function} ->
-        faker_fn_return_type = module
-          |> apply(function, [])
-          |> resolve_type
+        if module not in @faker_mod_blacklist do
+          faker_fn_return_type = module
+            |> apply(function, [])
+            |> resolve_type
 
-        faker_fn_return_type === type
+          faker_fn_return_type === type
+        end
       end)
   end
 

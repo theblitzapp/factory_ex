@@ -45,7 +45,7 @@ defmodule FactoryEx.Utils do
     ecto_schema
       |> String.split(".")
       |> Enum.take(-2)
-      |> Enum.map_join("_", &String.downcase/1)
+      |> Enum.map_join("_", &Macro.underscore/1)
   end
 
     @doc """
