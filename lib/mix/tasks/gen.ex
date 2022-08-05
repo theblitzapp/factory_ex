@@ -96,7 +96,8 @@ defmodule Mix.Tasks.FactoryEx.Gen do
         contents = File.read!(path)
 
         if not String.contains?(contents, "FactoryEx.SchemaCounter.start()") and Mix.Generator.overwrite?(path) do
-          Mix.shell().info([:green, "* injecting ", :reset, Path.relative_to_cwd(path)])
+          path = Path.relative_to_cwd(path)
+          Mix.shell().info([:green, "* injecting ", :reset, path])
 
           File.write!(path, contents <> "\nFactoryEx.SchemaCounter.start()", opts)
         end
