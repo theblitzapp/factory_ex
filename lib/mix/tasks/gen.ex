@@ -62,9 +62,11 @@ defmodule Mix.Tasks.FactoryEx.Gen do
     )
 
     if validate_repo?(opts[:repo]) do
-      extra_args
-        |> Enum.map(&FactoryExHelpers.string_to_module/1)
-        |> Enum.each(&generate_factory(&1, opts[:repo], opts))
+      ecto_schemas = Enum.map(extra_args, &FactoryExHelpers.string_to_module/1)
+
+      ensure_schema_counter_start_added(opts[:dirname], opts)
+
+      Enum.each(ecto_schemas, &generate_factory(&1, opts[:repo], opts))
     end
   end
 
@@ -81,6 +83,24 @@ defmodule Mix.Tasks.FactoryEx.Gen do
 
       false
     end
+  end
+
+  defp ensure_schema_counter_start_added(dirname, opts) do
+    dirname = if not is_nil(dirname), do: Path.expand(Path.join(dirname, "../../../../"))
+
+    "#{dirname || "."}/**/test_helper.exs"
+      |> Path.wildcard
+      |> Enum.each(fn path ->
+        path = Path.expand(path)
+
+        contents = File.read!(path)
+
+        if not String.contains?(contents, "FactoryEx.SchemaCounter.start()") and Mix.Generator.overwrite?(path) do
+          Mix.shell().info([:green, "* injecting ", :reset, Path.relative_to_cwd(path)])
+
+          File.write!(path, contents <> "\nFactoryEx.SchemaCounter.start()", opts)
+        end
+      end)
   end
 
   def generate_factory(ecto_schema, repo, opts) do
@@ -107,7 +127,9 @@ defmodule Mix.Tasks.FactoryEx.Gen do
       File.mkdir_p!(dirname)
     end
 
-    Path.join(dirname, file_name)
+    dirname
+      |> Path.join(file_name)
+      |> Path.relative_to_cwd
   end
 
   defp factory_template(ecto_schema, repo, schema_fields, _opts) do
