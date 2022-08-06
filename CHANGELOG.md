@@ -1,4 +1,7 @@
+## Changelog
 # 0.2.1
+- add build_invalid_params
+- add time generation fixes
 - Blacklist Faker.Name
 - Use context path in generation
 - Underscore counter names properly

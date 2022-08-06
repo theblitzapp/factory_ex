@@ -87,6 +87,27 @@ defmodule FactoryEx do
     end
   end
 
+  @spec build_invalid_params(module()) :: map()
+  def build_invalid_params(module) do
+    params = build_params(module)
+    schema = module.schema()
+
+    field = schema.__schema__(:fields)
+      |> Kernel.--([:updated_at, :inserted_at, :id])
+      |> Enum.reject(&(schema.__schema__(:type, &1) === :id))
+      |> Enum.random
+
+    field_type = schema.__schema__(:type, field)
+
+    field_value = case field_type do
+      :integer -> "asdfd"
+      :string -> 1239
+      _ -> 4321
+    end
+
+    Map.put(params, field, field_value)
+  end
+
   @doc """
   Builds a schema given the factory `module` and an optional
   list/map of `params`.

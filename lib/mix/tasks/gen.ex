@@ -55,16 +55,25 @@ defmodule Mix.Tasks.FactoryEx.Gen do
     {opts, extra_args, _} = OptionParser.parse(args,
       switches: [
         dirname: :string,
+        app_name: :string,
         force: :boolean,
         quiet: :boolean,
         repo: :string
       ]
     )
 
+    if opts[:app_name] and opts[:dirname] do
+      raise to_string(IO.ANSI.format([
+        :red, "Only one of ", :bright, "app_name", :reset,
+        :red, " or ", :bright, "dirname", :reset,
+        :red, " should be supplied"
+      ]))
+    end
+
     if validate_repo?(opts[:repo]) do
       ecto_schemas = Enum.map(extra_args, &FactoryExHelpers.string_to_module/1)
 
-      ensure_schema_counter_start_added(opts[:dirname], opts)
+      ensure_schema_counter_start_added(opts)
 
       Enum.each(ecto_schemas, &generate_factory(&1, opts[:repo], opts))
     end
@@ -85,19 +94,23 @@ defmodule Mix.Tasks.FactoryEx.Gen do
     end
   end
 
-  defp ensure_schema_counter_start_added(dirname, opts) do
-    dirname = if not is_nil(dirname), do: Path.expand(Path.join(dirname, "../../../../"))
+  def ensure_schema_counter_start_added(opts) do
+    directory = cond do
+      opts[:dirname] -> opts[:dirname]
+      opts[:app_name] -> Path.expand(Path.join(["../", opts[:app_name]]))
+      true -> "."
+    end
 
-    "#{dirname || "."}/**/test_helper.exs"
+    "#{directory}/**/test_helper.exs"
       |> Path.wildcard
       |> Enum.each(fn path ->
         path = Path.expand(path)
 
         contents = File.read!(path)
 
-        if not String.contains?(contents, "FactoryEx.SchemaCounter.start()") and Mix.Generator.overwrite?(path) do
+        if not String.contains?(contents, "FactoryEx.SchemaCounter.start()") do
           path = Path.relative_to_cwd(path)
-          Mix.shell().info([:green, "* injecting ", :reset, path])
+          Mix.shell().info([:green, "* injecting FactoryEx.SchemaCounter.start() into ", :reset, path])
 
           File.write!(path, contents <> "\nFactoryEx.SchemaCounter.start()", opts)
         end
@@ -118,8 +131,13 @@ defmodule Mix.Tasks.FactoryEx.Gen do
   end
 
   defp schema_factory_path(ecto_schema, opts) do
+    dirname = cond do
+      opts[:dirname] -> opts[:dirname]
+      opts[:app_name] -> Path.expand(Path.join(["../", opts[:app_name], "test/support/factory"]))
+      true -> Path.expand("./test/support/factory/")
+    end
+
     [context, schema] = ecto_schema |> inspect |> String.split(".") |> Enum.take(-2)
-    dirname = opts[:dirname] || Path.expand("./test/support/factory/")
     dirname = Path.join(dirname, Macro.underscore(context))
 
     file_name = "#{Macro.underscore(schema)}.ex"
@@ -171,7 +189,7 @@ defmodule Mix.Tasks.FactoryEx.Gen do
     schema_name = ecto_schema
       |> inspect()
       |> String.split(".")
-      |> Enum.map_join("_", &String.downcase/1)
+      |> Enum.map_join("_", &Macro.underscore/1)
 
     "FactoryEx.SchemaCounter.next(\"#{schema_name}_#{field}\")"
   end
@@ -188,11 +206,11 @@ defmodule Mix.Tasks.FactoryEx.Gen do
   end
 
   defp build_random_field(:naive_datetime_usec, _field, _ecto_schema) do
-    "10..30 |> Enum.random() |> Faker.DateTime.backward() |> DateTime.to_naive"
+    "10..30 |> Enum.random() |> Faker.DateTime.backward |> DateTime.to_naive"
   end
 
   defp build_random_field(:naive_datetime, _field, _ecto_schema) do
-    "10..30 |> Enum.random() |> Faker.DateTime.backward() |> DateTime.to_naive"
+    "10..30 |> Enum.random() |> Faker.DateTime.backward |> DateTime.truncate(:second) |> DateTime.to_naive"
   end
 
   defp build_random_field(:utc_datetime_usec, _field, _ecto_schema) do
@@ -200,7 +218,7 @@ defmodule Mix.Tasks.FactoryEx.Gen do
   end
 
   defp build_random_field(:utc_datetime, _field, _ecto_schema) do
-    "Faker.DateTime.backward(Enum.random(10..30))"
+    "Enum.random(10..30) |> Faker.DateTime.backward |> NaiveDateTime.truncate(:second)"
   end
 
   defp build_random_field(:date, _field, _ecto_schema) do
