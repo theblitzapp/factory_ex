@@ -41,7 +41,7 @@ defmodule FactoryEx.MixProject do
   defp deps do
     [
       {:ecto, "~> 3.0"},
-      {:faker, "~> 0.17"},
+      {:faker, ">= 0.0.0"},
 
       {:nimble_options, "~> 0.4"},
 
