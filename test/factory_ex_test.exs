@@ -20,10 +20,11 @@ defmodule FactoryExTest do
     end
 
     @required_params [:foo, :bar]
+    @available_params [:foo_bar_baz | @required_params]
 
     def changeset(%__MODULE__{} = user, attrs \\ %{}) do
       user
-        |> cast(attrs, @required_params)
+        |> cast(attrs, @available_params)
         |> validate_required(@required_params)
     end
   end
