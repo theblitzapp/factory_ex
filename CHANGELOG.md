@@ -1,4 +1,7 @@
 ## Changelog
+# 0.3.0
+- add Changeset validation to build for schemas
+
 # 0.2.1
 - add build_invalid_params
 - add time generation fixes

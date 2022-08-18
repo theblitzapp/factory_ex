@@ -53,6 +53,9 @@ FactoryEx.build(MyFactory)
 # For getting a default parameter map with a modification.
 FactoryEx.build(MyFactory, foo: 42)
 
+# For getting a default parameter map and not validating the changeset
+FactoryEx.build(MyFactory, [foo: 42], validate?: false)
+
 # For inserting a default schema.
 FactoryEx.insert!(MyFactory)
 
