@@ -114,14 +114,22 @@ defmodule FactoryEx do
   """
   @spec build(module()) :: Ecto.Schema.t()
   @spec build(module(), keyword() | map()) :: Ecto.Schema.t()
-  def build(module, params \\ %{})
+  def build(module, params \\ %{}, options \\ [])
 
-  def build(module, params) when is_list(params) do
-    build(module, Map.new(params))
+  def build(module, params, options) when is_list(params) do
+    build(module, Map.new(params), options)
   end
 
-  def build(module, params) do
-    struct!(module.schema(), module.build(params))
+  def build(module, params, options) do
+    validate = Keyword.get(options, :validate, true)
+
+    params
+    |> module.build()
+    |> maybe_changeset(module, validate)
+    |> case do
+      %Ecto.Changeset{} = changeset -> Ecto.Changeset.apply_action!(changeset, :insert)
+      struct when is_struct(struct) -> struct
+    end
   end
 
   @doc """
@@ -137,8 +145,11 @@ defmodule FactoryEx do
   end
 
   def insert!(module, params, options) do
-    module
-    |> build(params)
+    validate = Keyword.get(options, :validate, true)
+
+    params
+    |> module.build()
+    |> maybe_changeset(module, validate)
     |> module.repo().insert!(options)
   end
 
@@ -159,5 +170,27 @@ defmodule FactoryEx do
   @spec cleanup(module) :: {integer(), nil | [term()]}
   def cleanup(module, options \\ []) do
     module.repo().delete_all(module.schema(), options)
+  end
+
+  defp maybe_changeset(params, module, validate) do
+    if validate && schema?(module) do
+      params = Utils.deep_struct_to_map(params)
+
+      if create_changeset_defined?(module.schema()) do
+        module.schema().create_changeset(params)
+      else
+        module.schema().changeset(struct(module.schema(), %{}), params)
+      end
+    else
+      struct!(module.schema, params)
+    end
+  end
+
+  defp create_changeset_defined?(module) do
+    function_exported?(module, :create_changeset, 1)
+  end
+
+  defp schema?(module) do
+    function_exported?(module.schema(), :__schema__, 1)
   end
 end
