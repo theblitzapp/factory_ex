@@ -62,7 +62,7 @@ defmodule Mix.Tasks.FactoryEx.Gen do
       ]
     )
 
-    if opts[:app_name] and opts[:dirname] do
+    if opts[:app_name] && opts[:dirname] do
       raise to_string(IO.ANSI.format([
         :red, "Only one of ", :bright, "app_name", :reset,
         :red, " or ", :bright, "dirname", :reset,
