@@ -1,4 +1,7 @@
 ## Changelog
+# 0.3.1
+- Make a fix for `factory_ex.gen` to prevent errors
+
 # 0.3.0
 - add Changeset validation to build for schemas
 

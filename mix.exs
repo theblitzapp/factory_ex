@@ -4,7 +4,7 @@ defmodule FactoryEx.MixProject do
   def project do
     [
       app: :factory_ex,
-      version: "0.3.0",
+      version: "0.3.1",
       elixir: "~> 1.13",
       description: "Factories for elixir to help create data models at random, this works for any type of ecto structs",
       elixirc_paths: elixirc_paths(Mix.env()),
