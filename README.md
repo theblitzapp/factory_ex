@@ -47,20 +47,38 @@ end
 And then using it in your tests as:
 
 ```elixir
-# For getting a default parameter map.
+# For getting a default parameter struct.
 FactoryEx.build(MyFactory)
 
-# For getting a default parameter map with a modification.
+# For getting a default parameter struct with a modification.
 FactoryEx.build(MyFactory, foo: 42)
 
-# For getting a default parameter map and not validating the changeset
+# For getting a default parameter struct and not validating the changeset
 FactoryEx.build(MyFactory, [foo: 42], validate?: false)
+
+# For getting a default parameter map.
+FactoryEx.build_params(MyFactory)
+
+# For getting a default parameter map with a modification..
+FactoryEx.build_params(MyFactory, foo: 10)
+
+# For getting a default parameter map and not validating the changeset
+FactoryEx.build_params(MyFactory, foo: 10, validate?: false)
+
+# For getting multiple default parameter maps
+FactoryEx.build_many_params(MyFactory, [foo: 42])
+
+# For getting an invalid parameter maps
+FactoryEx.build_invalid_params(MyFactory, [foo: 42])
 
 # For inserting a default schema.
 FactoryEx.insert!(MyFactory)
 
 # For inserting a default schema with a modification.
 FactoryEx.insert!(MyFactory, foo: 42)
+
+# For inserting multiple default schema
+FactoryEx.insert_many!(10, MyFactory, foo: 42)
 ```
 
 ### Using FactoryEx.SchemaCounter
