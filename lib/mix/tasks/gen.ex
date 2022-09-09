@@ -194,6 +194,10 @@ defmodule Mix.Tasks.FactoryEx.Gen do
     "FactoryEx.SchemaCounter.next(\"#{schema_name}_#{field}\")"
   end
 
+  defp build_random_field(:float, _field, _ecto_schema) do
+    "Enum.random(0..99) * :rand.uniform_real()"
+  end
+
   defp build_random_field(:string, field, ecto_schema) do
     ecto_schema = inspect(ecto_schema)
     field_name = "#{FactoryEx.Utils.context_schema_name(ecto_schema)}_#{field}"
