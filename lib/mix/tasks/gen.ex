@@ -231,6 +231,8 @@ defmodule Mix.Tasks.FactoryEx.Gen do
     "Enum.random([#{enum_list}])"
   end
 
+  defp build_random_field(_ecto_type, _field, _ecto_schema), do: "nil"
+
   defp find_faker_function_with_type(field, type) do
     field
       |> matching_faker_functions
