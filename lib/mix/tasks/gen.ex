@@ -50,6 +50,7 @@ defmodule Mix.Tasks.FactoryEx.Gen do
   end)
 
   def run(args) do
+    Mix.Task.run("app.config", [])
     FactoryExHelpers.ensure_not_in_umbrella!("factory_ex.gen.factory")
 
     {opts, extra_args, _} = OptionParser.parse(args,
