@@ -1,4 +1,9 @@
 ## Changelog
+
+# 0.3.2
+- Ensure app modules are compiled, avoiding Module.safe_concat errors re: schema modules
+- Fix/add random field generators
+
 # 0.3.1
 - Make a fix for `factory_ex.gen` to prevent errors
 
