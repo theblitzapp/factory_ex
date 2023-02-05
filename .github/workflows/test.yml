@@ -20,14 +20,14 @@ jobs:
       - name: Install Tar
         run: apk add --no-cache tar
 
-      - name: Cache Deps & Build
-        uses: actions/cache@v2
+      - name: Restore dependencies cache
+        uses: actions/cache@v3
         with:
-          key: ${{github.ref}}-deps-build-cache
           path: |
-            ./deps
-            ./_build
-            !._build/dev/lib/error_message/
+                _build
+                deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}-${{ hashFiles('./.tool-versions') }}
+          restore-keys: ${{ runner.os }}-mix-
 
       - name: Install Dependencies
         run: mix deps.get
