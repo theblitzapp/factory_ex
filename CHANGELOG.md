@@ -1,5 +1,8 @@
 ## Changelog
 
+# 0.3.3
+- Make sure code is loaded before checking if functions exist
+
 # 0.3.2
 - Ensure app modules are compiled, avoiding Module.safe_concat errors re: schema modules
 - Fix/add random field generators

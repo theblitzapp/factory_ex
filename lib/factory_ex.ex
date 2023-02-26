@@ -68,6 +68,7 @@ defmodule FactoryEx do
   end
 
   def build_params(module, params, opts) do
+    Code.ensure_loaded(module.schema())
     opts = NimbleOptions.validate!(opts, @build_definition)
 
     params
@@ -91,6 +92,7 @@ defmodule FactoryEx do
   def build_invalid_params(module) do
     params = build_params(module)
     schema = module.schema()
+    Code.ensure_loaded(schema)
 
     field = schema.__schema__(:fields)
       |> Kernel.--([:updated_at, :inserted_at, :id])
@@ -121,6 +123,7 @@ defmodule FactoryEx do
   end
 
   def build(module, params, options) do
+    Code.ensure_loaded(module.schema())
     validate = Keyword.get(options, :validate, true)
 
     params
@@ -145,11 +148,12 @@ defmodule FactoryEx do
   end
 
   def insert!(module, params, options) do
-    validate = Keyword.get(options, :validate, true)
+    Code.ensure_loaded(module.schema())
+    validate? = Keyword.get(options, :validate, true)
 
     params
     |> module.build()
-    |> maybe_changeset(module, validate)
+    |> maybe_changeset(module, validate?)
     |> module.repo().insert!(options)
   end
 
@@ -172,8 +176,8 @@ defmodule FactoryEx do
     module.repo().delete_all(module.schema(), options)
   end
 
-  defp maybe_changeset(params, module, validate) do
-    if validate && schema?(module) do
+  defp maybe_changeset(params, module, validate?) do
+    if validate? && schema?(module) do
       params = Utils.deep_struct_to_map(params)
 
       if create_changeset_defined?(module.schema()) do
