@@ -43,7 +43,7 @@ defmodule FactoryEx.MixProject do
       {:ecto, "~> 3.0"},
       {:faker, ">= 0.0.0"},
 
-      {:nimble_options, "~> 0.4"},
+      {:nimble_options, "~> 1.0"},
 
       {:ecto_sql, "~> 3.0", only: [:test, :dev], optional: true},
       {:postgrex, "~> 0.16", only: [:test, :dev], optional: true},
