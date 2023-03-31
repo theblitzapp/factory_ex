@@ -1,5 +1,5 @@
 defmodule FactoryExTest do
-  use ExUnit.Case
+  use FactoryEx.DataCase
   doctest FactoryEx
 
   defmodule MyRepo do
@@ -14,9 +14,9 @@ defmodule FactoryExTest do
     import Ecto.Changeset
 
     schema "my_schmeas" do
-      field :foo, :integer
-      field :bar, :integer
-      field :foo_bar_baz, :integer
+      field(:foo, :integer)
+      field(:bar, :integer)
+      field(:foo_bar_baz, :integer)
     end
 
     @required_params [:foo, :bar]
@@ -24,8 +24,8 @@ defmodule FactoryExTest do
 
     def changeset(%__MODULE__{} = user, attrs \\ %{}) do
       user
-        |> cast(attrs, @available_params)
-        |> validate_required(@required_params)
+      |> cast(attrs, @available_params)
+      |> validate_required(@required_params)
     end
   end
 
@@ -64,17 +64,81 @@ defmodule FactoryExTest do
 
   test "can generate a factory with string keys" do
     assert %{
-      "foo" => 21,
-      "bar" => 42,
-      "foo_bar_baz" => 11
-    } = FactoryEx.build_params(TestFactory, %{}, keys: :string)
+             "foo" => 21,
+             "bar" => 42,
+             "foo_bar_baz" => 11
+           } = FactoryEx.build_params(TestFactory, %{}, keys: :string)
   end
 
   test "can generate a factory with camelCase keys" do
     assert %{
-      "foo" => 21,
-      "bar" => 42,
-      "fooBarBaz" => 11
-    } = FactoryEx.build_params(TestFactory, %{}, keys: :camel_string)
+             "foo" => 21,
+             "bar" => 42,
+             "fooBarBaz" => 11
+           } = FactoryEx.build_params(TestFactory, %{}, keys: :camel_string)
+  end
+
+  test "can build ecto schema associations with changeset validation" do
+    assert %FactoryEx.Support.Schema.Accounts.TeamOrganization{
+            teams: [
+              %{
+                users: [
+                  %FactoryEx.Support.Schema.Accounts.User{
+                    role: %FactoryEx.Support.Schema.Accounts.Role{},
+                    labels: [%FactoryEx.Support.Schema.Accounts.Label{}]
+                  }
+                ]
+              }
+            ]
+          } =
+          FactoryEx.build(
+            FactoryEx.Support.Factory.Accounts.TeamOrganization,
+            %{},
+            relational: [teams: [users: [:role, :labels]]]
+          )
+  end
+
+  test "can build ecto schema associations without changeset validation" do
+    assert %FactoryEx.Support.Schema.Accounts.TeamOrganization{
+            teams: [
+              %{
+                users: [
+                  %FactoryEx.Support.Schema.Accounts.User{
+                    role: %FactoryEx.Support.Schema.Accounts.Role{},
+                    labels: [%FactoryEx.Support.Schema.Accounts.Label{}]
+                  }
+                ]
+              }
+            ]
+          } =
+          FactoryEx.build(
+            FactoryEx.Support.Factory.Accounts.TeamOrganization,
+            %{},
+            relational: [teams: [users: [:role, :labels]]],
+            validate: false
+          )
+  end
+
+  test "can insert" do
+    assert %FactoryEx.Support.Schema.Accounts.User{} =
+      FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.User)
+
+    assert %FactoryEx.Support.Schema.Accounts.TeamOrganization{
+        teams: [
+          %{
+            users: [
+              %FactoryEx.Support.Schema.Accounts.User{
+                role: %FactoryEx.Support.Schema.Accounts.Role{},
+                labels: [%FactoryEx.Support.Schema.Accounts.Label{}]
+              }
+            ]
+          }
+        ]
+      } =
+      FactoryEx.insert!(
+        FactoryEx.Support.Factory.Accounts.TeamOrganization,
+        %{},
+        relational: [teams: [users: [:role, :labels]]]
+      )
   end
 end

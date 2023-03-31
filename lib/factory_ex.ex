@@ -2,7 +2,16 @@ defmodule FactoryEx do
   @build_definition [
     keys: [
       type: {:in, [:atom, :string, :camel_string]},
-      doc: "Sets the type of keys to have in the built object, can be one of `:atom`, `:string` or `:camel_string`"
+      doc:
+        "Sets the type of keys to have in the built object, can be one of `:atom`, `:string` or `:camel_string`"
+    ],
+    relational: [
+      type: {:or, [{:list, :atom}, :keyword_list]},
+      doc: "Sets the ecto schema association fields to generate, can be a list of `:atom` or `:keyword_list`"
+    ],
+    check_owner_key?: [
+      type: :boolean,
+      doc: "Sets the behaviour for handling associated parameters when the owner key is set, can be `true` or `false`. Defaults to `true`."
     ]
   ]
 
@@ -15,11 +24,11 @@ defmodule FactoryEx do
   #{NimbleOptions.docs(@build_definition)}
   """
 
-  alias FactoryEx.Utils
+  alias FactoryEx.{AssociationBuilder, Utils}
 
   @type build_opts :: [
-    keys: :atom | :string | :camel_string
-  ]
+          keys: :atom | :string | :camel_string
+        ]
 
   @doc """
   Callback that returns the schema module.
@@ -72,7 +81,9 @@ defmodule FactoryEx do
     opts = NimbleOptions.validate!(opts, @build_definition)
 
     params
+    |> Utils.expand_count_tuples()
     |> module.build()
+    |> then(&AssociationBuilder.build_params(module, &1, opts))
     |> Utils.deep_struct_to_map()
     |> maybe_encode_keys(opts)
   end
@@ -94,18 +105,20 @@ defmodule FactoryEx do
     schema = module.schema()
     Code.ensure_loaded(schema)
 
-    field = schema.__schema__(:fields)
+    field =
+      schema.__schema__(:fields)
       |> Kernel.--([:updated_at, :inserted_at, :id])
       |> Enum.reject(&(schema.__schema__(:type, &1) === :id))
-      |> Enum.random
+      |> Enum.random()
 
     field_type = schema.__schema__(:type, field)
 
-    field_value = case field_type do
-      :integer -> "asdfd"
-      :string -> 1239
-      _ -> 4321
-    end
+    field_value =
+      case field_type do
+        :integer -> "asdfd"
+        :string -> 1239
+        _ -> 4321
+      end
 
     Map.put(params, field, field_value)
   end
@@ -124,11 +137,13 @@ defmodule FactoryEx do
 
   def build(module, params, options) do
     Code.ensure_loaded(module.schema())
-    validate = Keyword.get(options, :validate, true)
+    validate? = Keyword.get(options, :validate, true)
 
     params
+    |> Utils.expand_count_tuples()
     |> module.build()
-    |> maybe_changeset(module, validate)
+    |> then(&AssociationBuilder.build_params(module, &1, options))
+    |> maybe_create_changeset(module, validate?)
     |> case do
       %Ecto.Changeset{} = changeset -> Ecto.Changeset.apply_action!(changeset, :insert)
       struct when is_struct(struct) -> struct
@@ -152,8 +167,10 @@ defmodule FactoryEx do
     validate? = Keyword.get(options, :validate, true)
 
     params
+    |> Utils.expand_count_tuples()
     |> module.build()
-    |> maybe_changeset(module, validate?)
+    |> then(&AssociationBuilder.build_params(module, &1, options))
+    |> maybe_create_changeset(module, validate?)
     |> module.repo().insert!(options)
   end
 
@@ -176,18 +193,59 @@ defmodule FactoryEx do
     module.repo().delete_all(module.schema(), options)
   end
 
-  defp maybe_changeset(params, module, validate?) do
+  defp maybe_create_changeset(params, module, validate?) do
     if validate? && schema?(module) do
       params = Utils.deep_struct_to_map(params)
 
       if create_changeset_defined?(module.schema()) do
-        module.schema().create_changeset(params)
+        params
+        |> module.schema().create_changeset()
+        |> maybe_put_assocs(params)
       else
-        module.schema().changeset(struct(module.schema(), %{}), params)
+        module.schema()
+        |> struct(%{})
+        |> module.schema().changeset(params)
+        |> maybe_put_assocs(params)
       end
     else
-      struct!(module.schema, params)
+      deep_struct!(module.schema, params)
     end
+  end
+
+  defp maybe_put_assocs(%{data: %module{}} = changeset, params) do
+    :associations
+    |> module.__schema__()
+    |> Enum.reduce(changeset, fn field, changeset ->
+      case Map.get(params, field) do
+        nil -> changeset
+        attrs -> Ecto.Changeset.put_assoc(changeset, field, attrs)
+      end
+    end)
+  end
+
+  defp deep_struct!(schema_module, params) when is_list(params) do
+    Enum.map(params, &deep_struct!(schema_module, &1))
+  end
+
+  defp deep_struct!(schema_module, params) do
+    Enum.reduce(params, struct!(schema_module, params), &convert_to_struct(&1, schema_module, &2))
+  end
+
+  defp convert_to_struct({field, attrs}, schema_module, acc) do
+    attrs =
+      case :associations
+        |> schema_module.__schema__()
+        |> Enum.find(&(&1 === field))
+        |> then(&schema_module.__schema__(:association, &1)) do
+        nil ->
+          attrs
+
+        ecto_assoc ->
+          deep_struct!(ecto_assoc.queryable, attrs)
+
+      end
+
+    Map.put(acc, field, attrs)
   end
 
   defp create_changeset_defined?(module) do
