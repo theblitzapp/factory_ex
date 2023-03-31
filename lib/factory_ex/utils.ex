@@ -148,7 +148,7 @@ defmodule FactoryEx.Utils do
 
   ## Examples
 
-      iex> FactoryEx.TermExpander.expand_count_tuples(%{hello: {2, %{world: {2, %{foo: :bar}}}}})
+      iex> FactoryEx.Utils.expand_count_tuples(%{hello: {2, %{world: {2, %{foo: :bar}}}}})
       %{
         hello: [
           %{world: [%{foo: :bar}, %{foo: :bar}]},
@@ -156,10 +156,10 @@ defmodule FactoryEx.Utils do
         ]
       }
 
-      iex> FactoryEx.TermExpander.expand_count_tuples(%{hello: [%{foo: "bar"}, {2, %{}}]})
+      iex> FactoryEx.Utils.expand_count_tuples(%{hello: [%{foo: "bar"}, {2, %{}}]})
       %{hello: [%{foo: "bar"}, %{}, %{}]}
 
-      iex> FactoryEx.TermExpander.expand_count_tuples(%{hello: [%{foo: {1, %{}}}, {1, %{qux: {1, %{bux: "hello world"}}}}]})
+      iex> FactoryEx.Utils.expand_count_tuples(%{hello: [%{foo: {1, %{}}}, {1, %{qux: {1, %{bux: "hello world"}}}}]})
       %{hello: [%{foo: [%{}]}, %{qux: [%{bux: "hello world"}]}]}
   """
   @spec expand_count_tuples(map() | list()) :: map()

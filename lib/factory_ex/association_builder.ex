@@ -16,7 +16,7 @@ defmodule FactoryEx.AssociationBuilder do
 
   - If the `owner_key` of the association's schema field is not set, the factory's `build/1`
     function will be invoked with the field's existing value. If the owner key is set the
-    field is skipped and the existing value will be kept. Any existing paramaters not passed
+    field is skipped and the existing value will be kept. Any existing parameters not passed
     as a relational key will be kept. If this behaviour is not desired you can set the
     `check_owner_field?` option to `false` and the parameters will be generated when the
     owner key is set.
@@ -118,8 +118,9 @@ defmodule FactoryEx.AssociationBuilder do
     if check_owner_key? and owner_key_is_set?(assoc, params) do
       Map.get(params, field)
     else
-      params = Map.get(params, field, [%{}])
-      Enum.map(params, fn params -> factory_build(queryable, params, assoc_fields, check_owner_key?) end)
+      params
+      |> Map.get(field, [%{}])
+      |> Enum.map(&factory_build(queryable, &1, assoc_fields, check_owner_key?))
     end
   end
 
