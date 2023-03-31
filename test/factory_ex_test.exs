@@ -140,5 +140,21 @@ defmodule FactoryExTest do
         %{},
         relational: [teams: [users: [:role, :labels]]]
       )
+
+    assert %FactoryEx.Support.Schema.Accounts.TeamOrganization{
+      teams: [
+        %{
+          users: [
+            %FactoryEx.Support.Schema.Accounts.User{},
+            %FactoryEx.Support.Schema.Accounts.User{}
+          ]
+        }
+      ]
+    } =
+    FactoryEx.insert!(
+      FactoryEx.Support.Factory.Accounts.TeamOrganization,
+      %{teams: [%{users: {2, %{}}}]},
+      relational: [teams: [:users]]
+    )
   end
 end
