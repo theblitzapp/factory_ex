@@ -163,7 +163,9 @@ defmodule FactoryEx.Utils do
       %{hello: [%{foo: [%{}]}, %{qux: [%{bux: "hello world"}]}]}
   """
   @spec expand_count_tuples(map() | list()) :: map()
-  def expand_count_tuples(enum), do: enum |> Enum.map(&transform/1) |> Map.new()
+  def expand_count_tuples(enum) when is_map(enum) or is_list(enum), do: enum |> Enum.map(&transform/1) |> Map.new()
+
+  def expand_count_tuples(val), do: val
 
   defp expand_many_count_tuples(count, attrs), do: Enum.map(1..count, fn _ -> expand_count_tuples(attrs) end)
 
