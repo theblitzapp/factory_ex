@@ -42,11 +42,13 @@ defmodule FactoryEx.MixProject do
   defp deps do
     [
       {:ecto, "~> 3.0"},
+      {:ecto_sql, "~> 3.0", only: [:test, :dev], optional: true},
+      {:postgrex, "~> 0.16", only: [:test, :dev], optional: true},
+
       {:faker, ">= 0.0.0"},
       {:nimble_options, "~> 0.5"},
       {:elixir_cache, "~> 0.3.0"},
-      {:ecto_sql, "~> 3.0", only: [:test, :dev], optional: true},
-      {:postgrex, "~> 0.16", only: [:test, :dev], optional: true},
+
       {:credo, "~> 1.6", only: [:test, :dev], runtime: false},
       {:blitz_credo_checks, "~> 0.1", only: [:test, :dev], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
