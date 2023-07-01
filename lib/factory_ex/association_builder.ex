@@ -147,7 +147,7 @@ defmodule FactoryEx.AssociationBuilder do
   end
 
   defp factory_build(queryable, params, assoc_fields, check_owner_key?) do
-    parent = FactoryEx.FactoryStore.build_params(queryable, params)
+    parent = FactoryEx.FactoryCache.build_params(queryable, params)
     assoc = convert_fields_to_params(queryable, params, assoc_fields, check_owner_key?)
 
     Map.merge(parent, assoc)
