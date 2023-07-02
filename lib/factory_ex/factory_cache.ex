@@ -26,15 +26,14 @@ defmodule FactoryEx.FactoryCache do
   By default the schemas in factory_ex are shown. Here's an example:
 
   ```elixir
-  FactoryEx.FactoryCache.get_store()
-  {:ok,
+  FactoryEx.FactoryCache.fetch_store!()
   %{
     FactoryEx.Support.Schema.Accounts.Label => FactoryEx.Support.Factory.Accounts.Label,
     FactoryEx.Support.Schema.Accounts.Role => FactoryEx.Support.Factory.Accounts.Role,
     FactoryEx.Support.Schema.Accounts.Team => FactoryEx.Support.Factory.Accounts.Team,
     FactoryEx.Support.Schema.Accounts.TeamOrganization => FactoryEx.Support.Factory.Accounts.TeamOrganization,
     FactoryEx.Support.Schema.Accounts.User => FactoryEx.Support.Factory.Accounts.User
-  }}
+  }
   ```
 
   Once the store is created you can build parameters for a given schema with `FactoryEx.FactoryCache.build_params/2`.
@@ -95,17 +94,13 @@ defmodule FactoryEx.FactoryCache do
     store
   end
 
-  @doc "Puts a value in the store."
-  @spec put_store(map()) :: {:ok, map()} | {:ok, nil}
-  def put_store(val) do
+  defp put_store(val) do
     with :ok <- ensure_cache_started!() do
       put(@store, val)
     end
   end
 
-  @doc "Returns the store."
-  @spec get_store :: {:ok, map()} | {:ok, nil}
-  def get_store do
+  defp get_store do
     with :ok <- ensure_cache_started!(),
       {:ok, nil} <- get(@store) do
         raise "FactoryCache store not found! To fix this error call `FactoryEx.FactoryCache.setup/0`."
@@ -139,17 +134,9 @@ defmodule FactoryEx.FactoryCache do
   @doc "Puts the result of `build_store/0` in the store."
   @spec setup :: :ok
   def setup do
-    put_store(build_store())
-  end
-
-  @doc "Collects factories and groups them by schema."
-  @spec build_store :: map()
-  def build_store do
-    Enum.reduce(
-      [@app | FactoryEx.Utils.apps_that_depend_on(@app)],
-      %{},
-      &lookup_factory_modules/2
-    )
+    [@app | FactoryEx.Utils.apps_that_depend_on(@app)]
+    |> Enum.reduce(%{}, &lookup_factory_modules/2)
+    |> put_store()
   end
 
   defp lookup_factory_modules(app, acc) do
