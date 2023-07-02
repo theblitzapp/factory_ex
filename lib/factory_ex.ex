@@ -6,7 +6,7 @@ defmodule FactoryEx do
         "Sets the type of keys to have in the built object, can be one of `:atom`, `:string` or `:camel_string`"
     ],
     relational: [
-      type: {:or, [{:list, :atom}, :keyword_list]},
+      type: {:or, [{:list, :any}, :keyword_list]},
       doc: "Sets the ecto schema association fields to generate, can be a list of `:atom` or `:keyword_list`"
     ],
     check_owner_key?: [

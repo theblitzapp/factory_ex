@@ -117,3 +117,60 @@ $ mix factory_ex.gen --repo FactoryEx.Support.Repo FactoryEx.Support.{Accounts.{
 ```
 
 To read more info run `mix factory_ex.gen`
+
+### Build Relational Associations
+
+FactoryEx can also build relational data structures based on your Ecto Schemas. This feature is
+used to work with associations as a whole and aims to reduce test boilerplate. For example,
+if a Team has many Users, it can create the parameters and/or associations automatically for you.
+If your goal is to simply add a new user to a team, then it is preferred to do so manually.
+
+To create many associations you can specify a tuple of `{count, params}` which are expanded to a list
+of params before building the factory. For example given a tuple of `{2, %{name: "John"}}` it will
+expand to `[%{name: "John"}, %{name: "John"}]`. This can be added inside of lists or as values in
+the map of parameters. You can also manually specify parameters per item when you want to create many
+params and override specific values. For example given three items if you wanted to customize the name
+for one you can do `[%{}, %{name: "custom"}, %{}]` or `[{2, %{}}, %{name: "custom"}]`.
+
+Let's take a look at an example:
+
+```elixir
+user_jane_doe = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.User, %{name: "Jane Doe"})
+
+team = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Team)
+
+[random_user_one, random_user_two] = FactoryEx.insert_many!(2, FactoryEx.Support.Factory.Accounts.User, %{team_id: team.id})
+
+FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Label, %{user_id: random_user_one.id})
+FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Label, %{user_id: random_user_two.id})
+
+user_john_doe = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.User, %{name: "John Doe", team_id: team.id})
+```
+
+This can also be written as:
+
+```elixir
+%{
+  team: %{
+    users: [user_john_doe, random_user_one, random_user_two]
+  } = team
+} = user_jane_doe =
+  FactoryEx.insert!(
+    FactoryEx.Support.Factory.Accounts.User,
+    %{
+      name: "Jane Doe",
+      team: %{
+        users: [%{name: "John Doe"}, {2, %{}}]
+      }
+    },
+    relational: [:role, team: [users: [:labels]]]
+  )
+```
+
+Note: While this can simplify the way you write boilerplate it comes with a tradeoff as it groups
+more of your data together which can hurt readability as well as make selecting specific pieces of
+data harder.
+
+By default when building associations your params are put as associations on the changesets and will
+be validated by your changeset validations. If this behavior is not desired you can set `validate`
+to false and the params are deep converted to structs only.

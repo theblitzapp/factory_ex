@@ -2,7 +2,6 @@ defmodule FactoryEx.FactoryCache do
   @moduledoc """
   KV store that maps Ecto.Schema modules keys to Factory module values.
 
-
   # Getting Started
 
   To use this cache it must first be started. It can be added a child to your
@@ -59,6 +58,8 @@ defmodule FactoryEx.FactoryCache do
 
   ## Requirements
 
+  The following steps are required to detect your factories:
+
   - Your application must have `factory_ex` as a dependency in `mix.exs`.
   - Your application defines a factory module for each schema used as a relational key
   - Your module contains the prefix `Factory`, ie. YourApp.Support.Factory.Schemas.Schema.
@@ -75,46 +76,14 @@ defmodule FactoryEx.FactoryCache do
   ```elixir
   config :factory_ex, :factory_module_prefix, Factory
   ```
-
-  ## Test Isolation
-
-  The factories can be isolated per test by enabling the sandbox through the config at *compile* time:
-
-  ```elixir
-  config :factory_ex, :sandbox_factory_cache?, true
-  ```
-
-  This method relies on `Cache.SandboxRegistry` which has to be started before your tests:
-
-  ```elixir
-  # test_helper.exs
-  Cache.SandboxRegistry.start_link()
-  ```
-
-  Once the sandbox registry is started you must then register the cache and put a value for
-  the store for each test. This can be done in a setup block:
-
-  ```elixir
-  # your test file
-  defmodule YourModuleTest do
-    setup do
-      Cache.SandboxRegistry.register_caches(FactoryEx.FactoryCache)
-
-      FactoryEx.FactoryCache.put_store(%{
-        FactoryEx.Support.Schema.Accounts.User => FactoryEx.Support.Factory.Accounts.User
-      })
-    end
-  end
-  ```
   """
   @app :factory_ex
-  @sandbox_enabled Application.compile_env(@app, :sandbox_factory_cache?, false)
   @factory_prefix Application.compile_env(@app, :factory_module_prefix, Factory)
 
   use Cache,
     adapter: Cache.ETS,
     name: :factory_ex_factory_store,
-    sandbox?: @sandbox_enabled,
+    sandbox?: false,
     opts: []
 
   @store :store
@@ -139,14 +108,12 @@ defmodule FactoryEx.FactoryCache do
   def get_store() do
     with :ok <- ensure_cache_started!(),
       {:ok, nil} <- get(@store) do
-        raise """
-        FactoryCache store not found! To fix this error call `FactoryEx.FactoryCache.setup/0`.
-        """
+        raise "FactoryCache store not found! To fix this error call `FactoryEx.FactoryCache.setup/0`."
     end
   end
 
   defp ensure_cache_started! do
-    if @sandbox_enabled or cache_started?() do
+    if cache_started?() do
       :ok
     else
       raise """
@@ -169,13 +136,13 @@ defmodule FactoryEx.FactoryCache do
     end
   end
 
-  @doc "Builds the store and hydrates the cache."
+  @doc "Puts the result of `build_store/0` in the store."
   @spec setup :: :ok
   def setup do
     put_store(build_store())
   end
 
-  @doc "Builds the store"
+  @doc "Collects factories and groups them by schema."
   @spec build_store :: map()
   def build_store do
     Enum.reduce(
