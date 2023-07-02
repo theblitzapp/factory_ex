@@ -76,15 +76,14 @@ defmodule FactoryEx.FactoryCache do
   config :factory_ex, :factory_module_prefix, Factory
   ```
   """
-  @app :factory_ex
-  @factory_prefix Application.compile_env(@app, :factory_module_prefix, Factory)
-
   use Cache,
     adapter: Cache.ETS,
     name: :factory_ex_factory_store,
     sandbox?: false,
     opts: []
 
+  @app :factory_ex
+  @factory_prefix Application.compile_env(@app, :factory_module_prefix, Factory)
   @store :store
 
   @doc "Returns the store map. Raises if no values exist."
@@ -92,6 +91,14 @@ defmodule FactoryEx.FactoryCache do
   def fetch_store! do
     {:ok, store} = get_store()
     store
+  end
+
+  @doc "Puts the result of `build_store/0` in the store."
+  @spec setup :: :ok
+  def setup do
+    [@app | FactoryEx.Utils.apps_that_depend_on(@app)]
+    |> Enum.reduce(%{}, &lookup_factory_modules/2)
+    |> put_store()
   end
 
   defp put_store(val) do
@@ -129,14 +136,6 @@ defmodule FactoryEx.FactoryCache do
       :undefined -> false
       _ -> true
     end
-  end
-
-  @doc "Puts the result of `build_store/0` in the store."
-  @spec setup :: :ok
-  def setup do
-    [@app | FactoryEx.Utils.apps_that_depend_on(@app)]
-    |> Enum.reduce(%{}, &lookup_factory_modules/2)
-    |> put_store()
   end
 
   defp lookup_factory_modules(app, acc) do
