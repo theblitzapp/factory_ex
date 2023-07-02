@@ -8,10 +8,6 @@ defmodule FactoryEx do
     relational: [
       type: {:or, [{:list, :any}, :keyword_list]},
       doc: "Sets the ecto schema association fields to generate, can be a list of `:atom` or `:keyword_list`"
-    ],
-    check_owner_key?: [
-      type: :boolean,
-      doc: "Sets the behaviour for handling associated parameters when the owner key is set, can be `true` or `false`. Defaults to `true`."
     ]
   ]
 
@@ -137,13 +133,13 @@ defmodule FactoryEx do
 
   def build(module, params, options) do
     Code.ensure_loaded(module.schema())
-    validate? = Keyword.get(options, :validate, true)
+    validate = Keyword.get(options, :validate, true)
 
     params
     |> Utils.expand_count_tuples()
     |> module.build()
     |> then(&AssociationBuilder.build_params(module, &1, options))
-    |> maybe_create_changeset(module, validate?)
+    |> maybe_create_changeset(module, validate)
     |> case do
       %Ecto.Changeset{} = changeset -> Ecto.Changeset.apply_action!(changeset, :insert)
       struct when is_struct(struct) -> struct
@@ -164,13 +160,13 @@ defmodule FactoryEx do
 
   def insert!(module, params, options) do
     Code.ensure_loaded(module.schema())
-    validate? = Keyword.get(options, :validate, true)
+    validate = Keyword.get(options, :validate, true)
 
     params
     |> Utils.expand_count_tuples()
     |> module.build()
     |> then(&AssociationBuilder.build_params(module, &1, options))
-    |> maybe_create_changeset(module, validate?)
+    |> maybe_create_changeset(module, validate)
     |> module.repo().insert!(options)
   end
 
@@ -193,8 +189,8 @@ defmodule FactoryEx do
     module.repo().delete_all(module.schema(), options)
   end
 
-  defp maybe_create_changeset(params, module, validate?) do
-    if validate? && schema?(module) do
+  defp maybe_create_changeset(params, module, validate) do
+    if validate && schema?(module) do
       params = Utils.deep_struct_to_map(params)
 
       if create_changeset_defined?(module.schema()) do

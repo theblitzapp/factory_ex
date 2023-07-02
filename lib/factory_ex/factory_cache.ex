@@ -104,8 +104,8 @@ defmodule FactoryEx.FactoryCache do
   end
 
   @doc "Returns the store."
-  @spec get_store() :: {:ok, map()} | {:ok, nil}
-  def get_store() do
+  @spec get_store :: {:ok, map()} | {:ok, nil}
+  def get_store do
     with :ok <- ensure_cache_started!(),
       {:ok, nil} <- get(@store) do
         raise "FactoryCache store not found! To fix this error call `FactoryEx.FactoryCache.setup/0`."
