@@ -78,7 +78,7 @@ defmodule FactoryEx.FactoryCache do
   """
   use Cache,
     adapter: Cache.ETS,
-    name: :factory_ex_factory_store,
+    name: :factory_ex_factory_cache,
     sandbox?: false,
     opts: []
 
@@ -93,7 +93,7 @@ defmodule FactoryEx.FactoryCache do
     store
   end
 
-  @doc "Puts the result of `build_store/0` in the store."
+  @doc "Creates the key-value store."
   @spec setup :: :ok
   def setup do
     [@app | FactoryEx.Utils.apps_that_depend_on(@app)]
@@ -110,7 +110,20 @@ defmodule FactoryEx.FactoryCache do
   defp get_store do
     with :ok <- ensure_cache_started!(),
       {:ok, nil} <- get(@store) do
-        raise "FactoryCache store not found! To fix this error call `FactoryEx.FactoryCache.setup/0`."
+        raise """
+        Factories not found!
+
+        Add the following to your test_helper.exs:
+
+        ```
+        # test_helper.exs
+        FactoryEx.FactoryCache.setup()
+        ```
+
+        If setup if already called in test_helper.exs ensure factory_ex is a dependency of
+        all applications that contain factories you want to load and they have the module
+        prefix #{inspect(@factory_prefix)}.
+        """
     end
   end
 
