@@ -1,4 +1,6 @@
 ## Changelog
+# 0.3.4
+- Update nimble_options
 
 # 0.3.3
 - Make sure code is loaded before checking if functions exist
