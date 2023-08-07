@@ -12,48 +12,14 @@ defmodule FactoryEx.FactoryCache do
   Cache.start_link([FactoryEx.FactoryCache])
   ```
 
-  Once the cache is started the store then needs to be created.
+  Once the cache add the following setup before your tests:
 
   ```elixir
-  FactoryEx.FactoryCache.setup()
-  :ok
+  setup do
+    Cache.SandboxRegistry.register_caches(FactoryEx.FactoryCache)
+    FactoryEx.FactoryCache.setup()
+  end
   ```
-
-  This function finds your factory modules, maps them to their schemas and stores
-  the result. This also works with umbrella apps out of the box.
-
-  We can now view the modules in the store with `FactoryEx.FactoryCache.get_store/0`.
-  By default the schemas in factory_ex are shown. Here's an example:
-
-  ```elixir
-  FactoryEx.FactoryCache.fetch_store!()
-  %{
-    FactoryEx.Support.Schema.Accounts.Label => FactoryEx.Support.Factory.Accounts.Label,
-    FactoryEx.Support.Schema.Accounts.Role => FactoryEx.Support.Factory.Accounts.Role,
-    FactoryEx.Support.Schema.Accounts.Team => FactoryEx.Support.Factory.Accounts.Team,
-    FactoryEx.Support.Schema.Accounts.TeamOrganization => FactoryEx.Support.Factory.Accounts.TeamOrganization,
-    FactoryEx.Support.Schema.Accounts.User => FactoryEx.Support.Factory.Accounts.User
-  }
-  ```
-
-  Once the store is created you can build parameters for a given schema with `FactoryEx.FactoryCache.build_params/2`.
-  Let's go through an example using a schema in the store:
-
-  ```elixir
-  FactoryEx.FactoryCache.build_params(FactoryEx.Support.Schema.Accounts.User, %{location: "custom_location"})
-  %{
-    birthday: ~D[1992-10-04],
-    email: "tyrese_welch@beier.org",
-    gender: "male",
-    location: "custom_location",
-    name: "Elisa Abbott"
-  }
-  ```
-
-  In the example above we called `FactoryEx.FactoryCache.build_params/2` with the schema
-  `FactoryEx.Support.Factory.Accounts.User` and some parameters. In the store the schema
-  key has the value of `FactoryEx.Support.Factory.Accounts.User`. This in turn calls
-  the factory's callback function `build/1` called with the parameters.
 
   ## Requirements
 
@@ -79,18 +45,19 @@ defmodule FactoryEx.FactoryCache do
   use Cache,
     adapter: Cache.ETS,
     name: :factory_ex_factory_cache,
-    sandbox?: false,
+    sandbox?: true,
     opts: []
 
   @app :factory_ex
   @factory_prefix Application.compile_env(@app, :factory_module_prefix, Factory)
   @store :store
 
-  @doc "Returns the store map. Raises if no values exist."
-  @spec fetch_store!() :: map()
-  def fetch_store! do
-    {:ok, store} = get_store()
-    store
+  @doc """
+  Returns the result of the `build/1` function of the Factory associated with the given schema.
+  """
+  @spec build_params(module, map) :: map
+  def build_params(ecto_schema, params \\ %{}) do
+    fetch_schema_factory!(ecto_schema).build(params)
   end
 
   @doc "Creates the key-value store."
@@ -102,53 +69,33 @@ defmodule FactoryEx.FactoryCache do
   end
 
   defp put_store(val) do
-    with :ok <- ensure_cache_started!() do
-      put(@store, val)
-    end
+    put(@store, val)
   end
 
   defp get_store do
-    with :ok <- ensure_cache_started!(),
-      {:ok, nil} <- get(@store) do
+    with {:ok, nil} <- get(@store) do
         raise """
         Factories not found!
 
-        Add the following to your test_helper.exs:
+        Add the following to your setup:
 
         ```
-        # test_helper.exs
-        FactoryEx.FactoryCache.setup()
+        setup do
+          FactoryEx.FactoryCache.setup()
+        end
         ```
 
-        If setup if already called in test_helper.exs ensure factory_ex is a dependency of
-        all applications that contain factories you want to load and they have the module
-        prefix #{inspect(@factory_prefix)}.
+        If setup/0 is already called ensure your application meets the requirements.
+        See the module documentation for FactoryEx.FactoryCache for more information
+        or `h FactoryEx.FactoryCache` in iex.
+
         """
     end
   end
 
-  defp ensure_cache_started! do
-    if cache_started?() do
-      :ok
-    else
-      raise """
-      FactoryEx.FactoryCache not started!
-
-      Add the following to your test_helper.exs:
-
-      ```
-      # test_helper.exs
-      Cache.start_link([FactoryEx.FactoryCache])
-      ```
-      """
-    end
-  end
-
-  defp cache_started? do
-    case :ets.whereis(FactoryEx.FactoryCache.cache_name()) do
-      :undefined -> false
-      _ -> true
-    end
+  defp fetch_store! do
+    {:ok, store} = get_store()
+    store
   end
 
   defp lookup_factory_modules(app, acc) do
@@ -163,14 +110,6 @@ defmodule FactoryEx.FactoryCache do
     else
       acc
     end
-  end
-
-  @doc """
-  Returns the result of the `build/1` function of the Factory associated with the given schema.
-  """
-  @spec build_params(module, map) :: map
-  def build_params(ecto_schema, params \\ %{}) do
-    fetch_schema_factory!(ecto_schema).build(params)
   end
 
   defp fetch_schema_factory!(ecto_schema) do
