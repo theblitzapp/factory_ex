@@ -143,19 +143,41 @@ defmodule FactoryEx.Utils do
     end
   end
 
+  @doc """
+  Returns all apps that have a dependency.
+
+  ## Examples
+
+      iex> FactoryEx.Utils.apps_that_depend_on(:ecto)
+      [:factory_ex, :ecto_sql]
+  """
   def apps_that_depend_on(dep) do
     :application.loaded_applications()
     |> Enum.reduce([], fn {app, _, _}, acc ->
       deps = Application.spec(app)[:applications]
-      (dep in deps && acc ++ [app]) || acc
+      if dep in deps, do: acc ++ [app], else: acc
     end)
   end
 
+  @doc """
+  Returns all application modules that start with a specific prefix.
+
+  ## Examples
+
+      iex> FactoryEx.Utils.find_app_modules(:factory_ex, Factory)
+      [
+        FactoryEx.Support.Factory.Accounts.Label,
+        FactoryEx.Support.Factory.Accounts.Role,
+        FactoryEx.Support.Factory.Accounts.Team,
+        FactoryEx.Support.Factory.Accounts.TeamOrganization,
+        FactoryEx.Support.Factory.Accounts.User
+      ]
+  """
   def find_app_modules(app, prefix) do
     case :application.get_key(app, :modules) do
       {:ok, modules} ->
         prefix = Module.split(prefix)
-        Enum.filter(modules, &(&1 |> Module.split() |> FactoryEx.Utils.sublist?(prefix)))
+        Enum.filter(modules, &(&1 |> Module.split() |> sublist?(prefix)))
 
       _ -> raise "modules not found for app #{inspect(app)}."
     end

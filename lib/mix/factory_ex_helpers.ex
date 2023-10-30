@@ -20,7 +20,6 @@ defmodule Mix.FactoryExHelpers do
         ])), __STACKTRACE__
   end
 
-
   def schema_primary_key(ecto_schema) do
     ecto_schema.__schema__(:primary_key)
   end
