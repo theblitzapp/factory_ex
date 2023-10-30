@@ -6,8 +6,7 @@ defmodule FactoryEx.MixProject do
       app: :factory_ex,
       version: "0.3.3",
       elixir: "~> 1.13",
-      description:
-        "Factories for elixir to help create data models at random, this works for any type of ecto structs",
+      description: "Factories for elixir to help create data models at random, this works for any type of ecto structs",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -73,10 +72,8 @@ defmodule FactoryEx.MixProject do
       groups_for_modules: [
         General: [
           FactoryEx,
-          FactoryEx.SchemaCounter
-        ],
-        Adapters: [
-          FactoryEx.Adapter
+          FactoryEx.SchemaCounter,
+          FactoryEx.FactoryCache
         ]
       ]
     ]
