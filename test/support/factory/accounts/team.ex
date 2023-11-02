@@ -1,7 +1,5 @@
 defmodule FactoryEx.Support.Factory.Accounts.Team do
-  @moduledoc """
-  Account Test Factory
-  """
+  @moduledoc false
   @behaviour FactoryEx
 
   @impl FactoryEx

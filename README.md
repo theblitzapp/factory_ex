@@ -120,57 +120,66 @@ To read more info run `mix factory_ex.gen`
 
 ### Build Relational Associations
 
-FactoryEx can also build relational data structures based on your Ecto Schemas. This feature is
-used to work with associations as a whole and aims to reduce test boilerplate. For example,
-if a Team has many Users, it can create the parameters and/or associations automatically for you.
-If your goal is to simply add a new user to a team, then it is preferred to do so manually.
-
-To create many associations you can specify a tuple of `{count, params}` which are expanded to a list
-of params before building the factory. For example given a tuple of `{2, %{name: "John"}}` it will
-expand to `[%{name: "John"}, %{name: "John"}]`. This can be added inside of lists or as values in
-the map of parameters. You can also manually specify parameters per item when you want to create many
-params and override specific values. For example given three items if you wanted to customize the name
-for one you can do `[%{}, %{name: "custom"}, %{}]` or `[{2, %{}}, %{name: "custom"}]`.
-
-Let's take a look at an example:
+FactoryEx makes it possible to create associated records with your factories. This is
+similar to creating to creating records with Ecto.Changeset `cast_assoc` or `put_assoc`
+with the addition of using your factory to generate the parameters. To use this feature
+you must pass the `relational` option. The `relational` option accepts a list of keys
+that map to associations, for example if a Team has many users you would pass
+`[relational: [:users]]`:
 
 ```elixir
-user_jane_doe = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.User, %{name: "Jane Doe"})
-
-team = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Team)
-
-[random_user_one, random_user_two] = FactoryEx.insert_many!(2, FactoryEx.Support.Factory.Accounts.User, %{team_id: team.id})
-
-FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Label, %{user_id: random_user_one.id})
-FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Label, %{user_id: random_user_two.id})
-
-user_john_doe = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.User, %{name: "John Doe", team_id: team.id})
-```
-
-This can also be written as:
-
-```elixir
-%{
-  team: %{
-    users: [user_john_doe, random_user_one, random_user_two]
-  } = team
-} = user_jane_doe =
-  FactoryEx.insert!(
-    FactoryEx.Support.Factory.Accounts.User,
-    %{
-      name: "Jane Doe",
-      team: %{
-        users: [%{name: "John Doe"}, {2, %{}}]
-      }
-    },
-    relational: [:role, team: [users: [:labels]]]
+  FactoryEx.AssociationBuilder.build_params(
+    FactoryEx.Support.Factory.Accounts.Team,
+    %{},
+    relational: [:users]
   )
 ```
 
-Note: While this can simplify the way you write boilerplate it comes with a tradeoff as it groups
-more of your data together which can hurt readability as well as make selecting specific pieces of
-data harder.
+The goal of this feature is to reduce boilerplate code in your test. In this example we
+create a team with 3 users that each have a label and a role:
 
-By default when building associations your params are put as associations on the changesets and will
-be validated by your changeset validations. If this behavior is not desired you can set `validate`
-to false and the params are deep converted to structs only.
+```elixir
+setup do
+  team = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Team)
+
+  user_one = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.User, %{team_id: team.id})
+  FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Label, %{user_id: user_one.id})
+  FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Role, %{user_id: user_one.id})
+
+  user_two = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.User, %{team_id: team.id})
+  FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Label, %{user_id: user_two.id})
+  FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Role, %{user_id: user_two.id})
+
+  user_three = FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.User, %{team_id: team.id})
+  FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Label, %{user_id: user_three.id})
+  FactoryEx.insert!(FactoryEx.Support.Factory.Accounts.Role, %{user_id: user_three.id})
+end
+```
+
+With the relational feature this can be written as:
+
+```elixir
+setup do
+  team =
+    FactoryEx.insert!(
+      FactoryEx.Support.Factory.Accounts.Team,
+      %{users: {3, %{}}},
+      relational: [users: [:labels, :role]]
+    )
+end
+```
+
+You can create many associations by specifying a tuple of `{count, params}` which is expanded
+to a list of params before building the params with a factory. For example if you pass a
+tuple of `{2, %{name: "John"}}` it will be expanded to `[%{name: "John"}, %{name: "John"}]`.
+The count tuples can be added as elements inside a list or as values in the map of
+parameters. You can also manually add parameters which is useful for setting specific values
+while creating a specific amount. For example given three items if you wanted to customize
+the name for one you can do `[%{}, %{name: "custom"}, %{}]` or `[{2, %{}}, %{name: "custom"}]`.
+
+By default parameters are validated by Ecto.Changeset. If this behavior is not desired you can
+set the `validate` option to false which converts params to structs only.
+
+While this can simplify the amount of boilerplate you have to write it comes with a trade off
+of creating large complex objects that can hurt readability and/or make accessing specific
+data harder.

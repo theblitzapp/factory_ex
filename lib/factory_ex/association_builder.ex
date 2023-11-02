@@ -8,13 +8,13 @@ defmodule FactoryEx.AssociationBuilder do
   This module expects the `FactoryEx.FactoryCache` to have been started and initialized.
   See the module documentation for more information.
 
-  ## How to Use
+  ## Relational Builder
 
-  The `relational` option is used to auto-generate parameters based on the keys. Each relational field
-  must be a valid association.
+  This is an introduction to the `relational` option which is used to auto-generate
+  factory parameters based on the keys. Let's look at an example.
 
-  For example let's say you had a schema `Team` that had many `User` associations you can call build
-  params with the `Team` factory and pass in the `users` association field as a relational argument.
+  If a `Team` has many `User` associations you can build many params using the `Team`
+  factory and pass `users` as the field in the relational option.
 
   ```elixir
   FactoryEx.AssociationBuilder.build_params(
@@ -24,18 +24,14 @@ defmodule FactoryEx.AssociationBuilder do
   )
   ```
 
-  We don't specify `team` in the relational keys since the team is the root level schema and the
-  association builder expects all fields at the top level to be valid associations of the `Team` schema.
-
-  Because the association builder traverses your Ecto.Schema's associations based on the fields if
-  the field specified does not exist as a valid association on the schema an error is raised.
+  Note that we did not add the field `team` since the team is the parent schema and all fields
+  must be valid associations of the team schema. The association builder may raise if a field
+  is not a valid ecto association for the given factory's schema.
 
   ## Examples
 
   ```elixir
-  #
   # Create params for a one-to-one relationship
-  #
   FactoryEx.AssociationBuilder.build_params(
     FactoryEx.Support.Factory.Accounts.User,
     %{name: "Jane Doe"},
@@ -47,9 +43,7 @@ defmodule FactoryEx.AssociationBuilder do
     team: %{name: "Macejkovic Group"}
   }
 
-  #
   # Create a specific count params for a one-to-many relationship
-  #
   FactoryEx.AssociationBuilder.build_params(
     FactoryEx.Support.Factory.Accounts.TeamOrganization,
     %{teams: [%{}, %{name: "awesome team name"}]},
@@ -57,9 +51,7 @@ defmodule FactoryEx.AssociationBuilder do
   )
   %{teams: [%{name: "Lindgren-Zemlak"}, %{name: "awesome team name"}]}
 
-  #
   # You can also build deep relational structures
-  #
   FactoryEx.AssociationBuilder.build_params(
     FactoryEx.Support.Factory.Accounts.TeamOrganization,
     %{},
@@ -84,7 +76,6 @@ defmodule FactoryEx.AssociationBuilder do
     ]
   }
   ```
-
   """
 
   @doc """
@@ -106,10 +97,10 @@ defmodule FactoryEx.AssociationBuilder do
     schema
     |> fetch_assoc!(field)
     |> create_one_or_many_params(params, field, assoc_fields)
-    |> case do
+    |> then(fn
       nil -> params
       assoc_params -> Map.put(params, field, assoc_params)
-    end
+    end)
   end
 
   defp create_schema_params(schema, field, params) do
@@ -117,22 +108,22 @@ defmodule FactoryEx.AssociationBuilder do
   end
 
   defp create_one_or_many_params(
-      %{cardinality: :many, queryable: queryable},
-      params,
-      field,
-      assoc_fields
-    ) do
+    %{cardinality: :many, queryable: queryable},
+    params,
+    field,
+    assoc_fields
+  ) do
     params
     |> Map.get(field, [%{}])
     |> Enum.map(&factory_build(queryable, &1, assoc_fields))
   end
 
   defp create_one_or_many_params(
-      %{cardinality: :one, queryable: queryable},
-      params,
-      field,
-      assoc_fields
-    ) do
+    %{cardinality: :one, queryable: queryable},
+    params,
+    field,
+    assoc_fields
+  ) do
     params = Map.get(params, field, %{})
     factory_build(queryable, params, assoc_fields)
   end

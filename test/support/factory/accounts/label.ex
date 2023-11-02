@@ -1,7 +1,5 @@
 defmodule FactoryEx.Support.Factory.Accounts.Label do
-  @moduledoc """
-  Account Test Factory
-  """
+  @moduledoc false
   @behaviour FactoryEx
 
   @impl FactoryEx

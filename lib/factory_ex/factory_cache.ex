@@ -4,29 +4,19 @@ defmodule FactoryEx.FactoryCache do
   to Factory module values. This is used to automatically generate
   relational ecto data structures through the `relational` option.
 
-  # Getting Started
+  ## Getting Started
 
-  To use this cache you must first start it with `Cache.start_link/1`.
-  This can be added to your test_helper.exs file, for example:
+  To use this cache you must first start the cache and call setup.
+  You can add this to your `test_helper.exs` file:
 
   ```elixir
   # test_helper.exs
   Cache.start_link([FactoryEx.FactoryCache])
+  FactoryEx.FactoryCache.setup()
   ```
 
-  Once the cache is started you must call `FactoryEx.FactoryCache.setup/0`
-  before using the relational option in your tests.
-
-  Once the cache add the following setup before your tests:
-
-  ```elixir
-  setup_all do
-    FactoryEx.FactoryCache.setup()
-  end
-  ```
-
-  In umbrella apps you can also start the cache once by checking
-  if the cache has already started in your `test_helper.exs` file:
+  In umbrella apps this may raise an error if you attempt to start multiple instances
+  of the cache at once. To fix this you can check if the cache has already started:
 
   ```elixir
   # test_helper.exs
@@ -47,7 +37,7 @@ defmodule FactoryEx.FactoryCache do
 
   In umbrella applications these requirements are per application.
 
-  ## Factory Module Prefix
+  ## Prefix
 
   If your application's factory modules do not use the prefix `Factory` or you want to change
   which factory modules are loaded during tests you can configure the module prefix option at
@@ -132,27 +122,47 @@ defmodule FactoryEx.FactoryCache do
   defp put_store(state), do: put(@store, state)
 
   defp fetch_store! do
-    case get(@store) do
-      {:ok, nil} ->
-        raise """
-        Factories not found!
+    with :ok <- ensure_already_started!() do
+      case get(@store) do
+        {:ok, nil} ->
+          raise """
+          Factories not found!
 
-        Add the following to your setup:
+          Add the following to your test_helper.exs:
 
-        ```
-        setup do
+          ```
+          # test_helper.exs
           FactoryEx.FactoryCache.setup()
-        end
-        ```
+          ```
 
-        If setup/0 is already called ensure your application meets the requirements.
-        See the module documentation for FactoryEx.FactoryCache for more information
-        or `h FactoryEx.FactoryCache` in iex.
+          If setup/0 is already called ensure your application meets the requirements.
+          See the module documentation for FactoryEx.FactoryCache for more information
+          or `h FactoryEx.FactoryCache` in iex.
+          """
 
-        """
+        {:ok, state} ->
+          state
 
-      {:ok, state} ->
-        state
+      end
+    end
+  end
+
+  defp ensure_already_started! do
+    if already_started?() do
+      :ok
+    else
+      raise """
+      FactoryEx.FactoryCache not started!
+
+      The cache must be started and call setup before it can be used.
+      You can do this by adding the following to your test_helper.exs file:
+
+      ```
+      # test_helpers.exs
+      Cache.start_link([FactoryEx.FactoryCache])
+      FactoryEx.FactoryCache.setup()
+      ```
+      """
     end
   end
 end

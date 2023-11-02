@@ -73,6 +73,7 @@ defmodule FactoryEx.MixProject do
         General: [
           FactoryEx,
           FactoryEx.SchemaCounter,
+          FactoryEx.AssociationBuilder,
           FactoryEx.FactoryCache
         ]
       ]
