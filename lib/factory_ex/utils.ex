@@ -209,6 +209,8 @@ defmodule FactoryEx.Utils do
 
   defp expand_many_count_tuples(count, attrs), do: Enum.map(1..count, fn _ -> expand_count_tuples(attrs) end)
 
+  defp transform({_key, %_{} = _struct} = val), do: val
+
   defp transform({key, attrs}) when is_map(attrs), do: {key, expand_count_tuples(attrs)}
 
   defp transform({key, many_attrs}) when is_list(many_attrs) do
