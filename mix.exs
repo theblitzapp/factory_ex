@@ -33,7 +33,7 @@ defmodule FactoryEx.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :postgrex]
     ]
   end
 
@@ -41,16 +41,15 @@ defmodule FactoryEx.MixProject do
   defp deps do
     [
       {:ecto, "~> 3.0"},
-      {:faker, ">= 0.0.0"},
-
-      {:nimble_options, "~> 1.0"},
-
       {:ecto_sql, "~> 3.0", only: [:test, :dev], optional: true},
       {:postgrex, "~> 0.16", only: [:test, :dev], optional: true},
 
+      {:faker, ">= 0.0.0"},
+      {:nimble_options, "~> 0.4 or ~> 1.0"},
+      {:elixir_cache, "~> 0.3"},
+
       {:credo, "~> 1.6", only: [:test, :dev], runtime: false},
       {:blitz_credo_checks, "~> 0.1", only: [:test, :dev], runtime: false},
-
       {:excoveralls, "~> 0.10", only: :test},
       {:ex_doc, ">= 0.0.0", optional: true, only: :dev},
       {:dialyxir, "~> 1.0", optional: true, only: :test, runtime: false}
@@ -70,15 +69,12 @@ defmodule FactoryEx.MixProject do
     [
       main: "FactoryEx",
       source_url: "https://github.com/theblitzapp/factory_ex",
-
       groups_for_modules: [
-        "General": [
+        General: [
           FactoryEx,
-          FactoryEx.SchemaCounter
-        ],
-
-        "Adapters": [
-          FactoryEx.Adapter
+          FactoryEx.SchemaCounter,
+          FactoryEx.AssociationBuilder,
+          FactoryEx.FactoryCache
         ]
       ]
     ]
