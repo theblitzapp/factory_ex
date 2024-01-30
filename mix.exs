@@ -45,7 +45,7 @@ defmodule FactoryEx.MixProject do
       {:postgrex, "~> 0.16", only: [:test, :dev], optional: true},
 
       {:faker, ">= 0.0.0"},
-      {:nimble_options, "~> 1.0"},
+      {:nimble_options, "~> 0.4 or ~> 1.0"},
       {:elixir_cache, "~> 0.3.2"},
 
       {:credo, "~> 1.6", only: [:test, :dev], runtime: false},
