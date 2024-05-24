@@ -97,14 +97,16 @@ defmodule FactoryEx do
     field = schema.__schema__(:fields)
       |> Kernel.--([:updated_at, :inserted_at, :id])
       |> Enum.reject(&(schema.__schema__(:type, &1) === :id))
-      |> Enum.random
+      |> Enum.shuffle
+      |> Enum.take(2)
 
     field_type = schema.__schema__(:type, field)
 
     field_value = case field_type do
       :integer -> "asdfd"
       :string -> 1239
-      _ -> 4321
+      :float -> "string"
+      _ -> {:invalid_type, 1}
     end
 
     Map.put(params, field, field_value)
