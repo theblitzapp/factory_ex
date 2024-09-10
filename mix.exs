@@ -44,7 +44,7 @@ defmodule FactoryEx.MixProject do
       {:ecto_sql, "~> 3.0", only: [:test, :dev], optional: true},
       {:postgrex, "~> 0.16", only: [:test, :dev], optional: true},
 
-      {:faker, ">= 0.0.0"},
+      {:faker, ">= 0.0.0", only: :test},
       {:nimble_options, "~> 0.4 or ~> 1.0"},
       {:elixir_cache, "~> 0.3"},
 
