@@ -47,11 +47,11 @@ defmodule FactoryEx.MixProject do
       {:nimble_options, "~> 0.4 or ~> 1.0"},
       {:elixir_cache, "~> 0.3"},
 
-      {:credo, "~> 1.6", runtime: false},
-      {:blitz_credo_checks, "~> 0.1", runtime: false},
-      {:excoveralls, "~> 0.10", runtime: false},
-      {:ex_doc, ">= 0.0.0", optional: true, runtime: false},
-      {:dialyxir, "~> 1.0", optional: true, runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false, optional: true},
+      {:blitz_credo_checks, "~> 0.1", only: [:dev, :test], runtime: false, optional: true},
+      {:excoveralls, "~> 0.10", only: :test, runtime: false, optional: true},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false, optional: true},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false, optional: true}
     ]
   end
 
