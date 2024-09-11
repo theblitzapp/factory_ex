@@ -15,9 +15,9 @@ defmodule FactoryEx.MixProject do
       test_coverage: [tool: ExCoveralls],
       dialyzer: [
         plt_add_apps: [:ex_unit, :mix, :credo, :ecto_sql],
-        list_unused_filters: true,
         plt_local_path: "dialyzer",
         plt_core_path: "dialyzer",
+        list_unused_filters: true,
         flags: [:unmatched_returns]
       ],
       preferred_cli_env: [
@@ -41,19 +41,17 @@ defmodule FactoryEx.MixProject do
   defp deps do
     [
       {:ecto, "~> 3.0"},
-      {:faker, ">= 0.0.0"},
+      {:ecto_sql, "~> 3.0", optional: true},
+      {:postgrex, "~> 0.16", optional: true},
+      {:nimble_options, "~> 0.4 or ~> 1.0"},
+      {:elixir_cache, "~> 0.3"},
+      {:faker, ">= 0.0.0", only: [:dev, :test]},
 
-      {:nimble_options, "~> 1.0"},
-
-      {:ecto_sql, "~> 3.0", only: [:test, :dev], optional: true},
-      {:postgrex, "~> 0.16", only: [:test, :dev], optional: true},
-
-      {:credo, "~> 1.6", only: [:test, :dev], runtime: false},
-      {:blitz_credo_checks, "~> 0.1", only: [:test, :dev], runtime: false},
-
-      {:excoveralls, "~> 0.10", only: :test},
-      {:ex_doc, ">= 0.0.0", optional: true, only: :dev},
-      {:dialyxir, "~> 1.0", optional: true, only: :test, runtime: false}
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false, optional: true},
+      {:blitz_credo_checks, "~> 0.1", only: [:dev, :test], runtime: false, optional: true},
+      {:excoveralls, "~> 0.10", only: :test, runtime: false, optional: true},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false, optional: true},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false, optional: true}
     ]
   end
 
@@ -70,15 +68,12 @@ defmodule FactoryEx.MixProject do
     [
       main: "FactoryEx",
       source_url: "https://github.com/theblitzapp/factory_ex",
-
       groups_for_modules: [
-        "General": [
+        General: [
           FactoryEx,
-          FactoryEx.SchemaCounter
-        ],
-
-        "Adapters": [
-          FactoryEx.Adapter
+          FactoryEx.SchemaCounter,
+          FactoryEx.AssociationBuilder,
+          FactoryEx.FactoryCache
         ]
       ]
     ]

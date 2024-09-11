@@ -38,17 +38,17 @@ defmodule FactoryEx.Utils do
   end
 
   def underscore_schema(ecto_schema) do
-    ecto_schema |> String.replace(".", "") |> Macro.underscore
+    ecto_schema |> String.replace(".", "") |> Macro.underscore()
   end
 
   def context_schema_name(ecto_schema) do
     ecto_schema
-      |> String.split(".")
-      |> Enum.take(-2)
-      |> Enum.map_join("_", &Macro.underscore/1)
+    |> String.split(".")
+    |> Enum.take(-2)
+    |> Enum.map_join("_", &Macro.underscore/1)
   end
 
-    @doc """
+  @doc """
   Converts all string keys to string
 
   ### Example
@@ -105,5 +105,133 @@ defmodule FactoryEx.Utils do
 
   defp camelize_list([h | tail], :upper) do
     [String.capitalize(h)] ++ camelize_list(tail, :upper)
+  end
+
+  @doc """
+  Returns `true` if the second list exists in the first list or `false`.
+
+  ## Example
+      iex> FactoryEx.Util.List.sublist?([:a, :b, :c], [:b, :c])
+      true
+  """
+  def sublist?([], _), do: false
+
+  def sublist?([_ | t] = l1, l2) do
+    List.starts_with?(l1, l2) or sublist?(t, l2)
+  end
+
+  @doc """
+  Ensure the module with the public function and arity is defined
+
+  Note: `function_exported/3` does not load the module in case it is not loaded.
+  If the BEAM is running in `interactive` mode there is a chance this module has not
+  been loaded yet. `Code.ensure_loaded/1` is used to ensure the module is loaded
+  first.
+
+  Docs: https://hexdocs.pm/elixir/1.12/Kernel.html#function_exported?/3
+  """
+  def ensure_function_exported?(module, fun, arity) do
+    case Code.ensure_loaded(module) do
+      {:module, module} ->
+        function_exported?(module, fun, arity)
+
+      {:error, reason} ->
+        raise """
+          Code failed to load module `#{inspect(module)}` with reason: #{inspect(reason)}!
+          Ensure the module name is correct and it exists.
+          """
+    end
+  end
+
+  @doc """
+  Returns all apps that have a dependency.
+
+  ## Examples
+
+      iex> FactoryEx.Utils.apps_that_depend_on(:ecto)
+      [:factory_ex, :ecto_sql]
+  """
+  def apps_that_depend_on(dep) do
+    :application.loaded_applications()
+    |> Enum.reduce([], fn {app, _, _}, acc ->
+      deps = Application.spec(app)[:applications]
+      if dep in deps, do: acc ++ [app], else: acc
+    end)
+  end
+
+  @doc """
+  Returns all application modules that start with a specific prefix.
+
+  ## Examples
+
+      iex> FactoryEx.Utils.find_app_modules(:factory_ex, Factory)
+      [
+        FactoryEx.Support.Factory.Accounts.Label,
+        FactoryEx.Support.Factory.Accounts.Role,
+        FactoryEx.Support.Factory.Accounts.Team,
+        FactoryEx.Support.Factory.Accounts.TeamOrganization,
+        FactoryEx.Support.Factory.Accounts.User
+      ]
+  """
+  def find_app_modules(app, prefix) do
+    case :application.get_key(app, :modules) do
+      {:ok, modules} ->
+        prefix = Module.split(prefix)
+        Enum.filter(modules, &(&1 |> Module.split() |> sublist?(prefix)))
+
+      _ -> raise "modules not found for app #{inspect(app)}."
+    end
+  end
+
+  @doc """
+  Deep Converts `{count, attrs}` to list of `attrs`.
+
+  ## Examples
+
+      iex> FactoryEx.Utils.expand_count_tuples(%{hello: {2, %{world: {2, %{foo: :bar}}}}})
+      %{
+        hello: [
+          %{world: [%{foo: :bar}, %{foo: :bar}]},
+          %{world: [%{foo: :bar}, %{foo: :bar}]}
+        ]
+      }
+
+      iex> FactoryEx.Utils.expand_count_tuples(%{hello: [%{foo: "bar"}, {2, %{}}]})
+      %{hello: [%{foo: "bar"}, %{}, %{}]}
+
+      iex> FactoryEx.Utils.expand_count_tuples(%{hello: [%{foo: {1, %{}}}, {1, %{qux: {1, %{bux: "hello world"}}}}]})
+      %{hello: [%{foo: [%{}]}, %{qux: [%{bux: "hello world"}]}]}
+  """
+  @spec expand_count_tuples(map() | list()) :: map()
+  def expand_count_tuples(enum) when is_map(enum) or is_list(enum), do: enum |> Enum.map(&transform/1) |> Map.new()
+
+  def expand_count_tuples(val), do: val
+
+  defp expand_many_count_tuples(count, attrs), do: Enum.map(1..count, fn _ -> expand_count_tuples(attrs) end)
+
+  defp transform({_key, %_{} = _struct} = val), do: val
+
+  defp transform({key, attrs}) when is_map(attrs), do: {key, expand_count_tuples(attrs)}
+
+  defp transform({key, many_attrs}) when is_list(many_attrs) do
+    attrs =
+      Enum.reduce(many_attrs, [], fn
+        {count, attrs}, acc ->
+          acc ++ expand_many_count_tuples(count, attrs)
+
+        attrs, acc ->
+          acc ++ [expand_count_tuples(attrs)]
+
+      end)
+
+    {key, attrs}
+  end
+
+  defp transform({key, {count, attrs}}) do
+    {key, expand_many_count_tuples(count, attrs)}
+  end
+
+  defp transform(attrs) do
+    attrs
   end
 end
