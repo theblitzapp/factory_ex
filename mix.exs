@@ -15,9 +15,9 @@ defmodule FactoryEx.MixProject do
       test_coverage: [tool: ExCoveralls],
       dialyzer: [
         plt_add_apps: [:ex_unit, :mix, :credo, :ecto_sql],
-        list_unused_filters: true,
         plt_local_path: "dialyzer",
         plt_core_path: "dialyzer",
+        list_unused_filters: true,
         flags: [:unmatched_returns]
       ],
       preferred_cli_env: [
@@ -33,7 +33,7 @@ defmodule FactoryEx.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :postgrex]
+      extra_applications: [:logger]
     ]
   end
 
@@ -45,7 +45,7 @@ defmodule FactoryEx.MixProject do
       {:postgrex, "~> 0.16", optional: true},
       {:nimble_options, "~> 0.4 or ~> 1.0"},
       {:elixir_cache, "~> 0.3"},
-      {:faker, ">= 0.0.0", only: :test},
+      {:faker, ">= 0.0.0", only: [:dev, :test]},
 
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false, optional: true},
       {:blitz_credo_checks, "~> 0.1", only: [:dev, :test], runtime: false, optional: true},
