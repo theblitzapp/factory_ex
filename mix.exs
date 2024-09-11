@@ -43,9 +43,9 @@ defmodule FactoryEx.MixProject do
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.0", optional: true},
       {:postgrex, "~> 0.16", optional: true},
-      {:faker, ">= 0.0.0"},
       {:nimble_options, "~> 0.4 or ~> 1.0"},
       {:elixir_cache, "~> 0.3"},
+      {:faker, ">= 0.0.0", only: :test},
 
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false, optional: true},
       {:blitz_credo_checks, "~> 0.1", only: [:dev, :test], runtime: false, optional: true},
