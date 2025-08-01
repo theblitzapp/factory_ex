@@ -6,16 +6,20 @@ jobs:
   Test:
     runs-on: ubuntu-latest
 
-    container:
-      image: mikaak/elixir:1.13-alpine
-      env:
-        MIX_ENV: test
-
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Rebar & Hex
-        run: mix local.hex --force && mix local.rebar --force
+      - uses: erlef/setup-beam@v1
+        id: setup-beam
+        with:
+          otp-version: 25.3.2.16
+          elixir-version: 1.18.2-otp-25
+
+      - name: Setup Hex and Rebar
+        shell: bash
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
 
       - name: Install Tar
         run: apk add --no-cache tar
@@ -24,8 +28,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-                _build
-                deps
+            _build
+            deps
           key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}-${{ hashFiles('./.tool-versions') }}
           restore-keys: ${{ runner.os }}-mix-
 
