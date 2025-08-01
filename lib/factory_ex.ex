@@ -2,7 +2,8 @@ defmodule FactoryEx do
   @build_definition [
     keys: [
       type: {:in, [:atom, :string, :camel_string]},
-      doc: "Sets the type of keys to have in the built object, can be one of `:atom`, `:string` or `:camel_string`"
+      doc:
+        "Sets the type of keys to have in the built object, can be one of `:atom`, `:string` or `:camel_string`"
     ]
   ]
 
@@ -18,8 +19,8 @@ defmodule FactoryEx do
   alias FactoryEx.Utils
 
   @type build_opts :: [
-    keys: :atom | :string | :camel_string
-  ]
+          keys: :atom | :string | :camel_string
+        ]
 
   @doc """
   Callback that returns the schema module.
@@ -94,18 +95,20 @@ defmodule FactoryEx do
     schema = module.schema()
     Code.ensure_loaded(schema)
 
-    field = schema.__schema__(:fields)
+    field =
+      schema.__schema__(:fields)
       |> Kernel.--([:updated_at, :inserted_at, :id])
       |> Enum.reject(&(schema.__schema__(:type, &1) === :id))
-      |> Enum.random
+      |> Enum.random()
 
     field_type = schema.__schema__(:type, field)
 
-    field_value = case field_type do
-      :integer -> "asdfd"
-      :string -> 1239
-      _ -> 4321
-    end
+    field_value =
+      case field_type do
+        :integer -> "asdfd"
+        :string -> 1239
+        _ -> 4321
+      end
 
     Map.put(params, field, field_value)
   end
@@ -186,7 +189,7 @@ defmodule FactoryEx do
         module.schema().changeset(struct(module.schema(), %{}), params)
       end
     else
-      struct!(module.schema, params)
+      struct!(module.schema(), params)
     end
   end
 
