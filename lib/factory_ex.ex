@@ -69,7 +69,7 @@ defmodule FactoryEx do
   end
 
   def build_params(module, params, opts) do
-    Code.ensure_loaded(module.schema())
+    _ = Code.ensure_loaded(module.schema())
     opts = NimbleOptions.validate!(opts, @build_definition)
 
     params
@@ -126,7 +126,7 @@ defmodule FactoryEx do
   end
 
   def build(module, params, options) do
-    Code.ensure_loaded(module.schema())
+    _ = Code.ensure_loaded(module.schema())
     validate = Keyword.get(options, :validate, true)
 
     params
@@ -151,7 +151,7 @@ defmodule FactoryEx do
   end
 
   def insert!(module, params, options) do
-    Code.ensure_loaded(module.schema())
+    _ = Code.ensure_loaded(module.schema())
     validate? = Keyword.get(options, :validate, true)
 
     params
