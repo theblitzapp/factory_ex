@@ -93,7 +93,7 @@ defmodule FactoryEx do
   def build_invalid_params(module) do
     params = build_params(module)
     schema = module.schema()
-    Code.ensure_loaded(schema)
+    _ = Code.ensure_loaded(schema)
 
     field =
       schema.__schema__(:fields)
